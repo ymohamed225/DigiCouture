@@ -192,3 +192,5 @@ npx eas build -p android --profile preview
 ## 📜 Licence & Propriété
 Développé avec passion pour l'excellence de la Couture Africaine et la digitalisation des Maisons de Couture.  
 Tous droits réservés © 2026 **Maison DigiCouture VIP**.
+#   D i g i C o u t u r e  
+ 
