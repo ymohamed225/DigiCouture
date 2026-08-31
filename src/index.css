@@ -423,3 +423,29 @@ main {
     gap: 0.5rem !important;
   }
 }
+
+/* 5. Images Réactives Landing Page */
+img {
+  max-width: 100% !important;
+  height: auto;
+}
+
+@media (max-width: 900px) {
+  .hero-mockups-container {
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+    margin-top: 2rem !important;
+  }
+
+  .hero-mockups-container > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: auto !important;
+  }
+
+  .hero-mockups-container img {
+    max-height: 360px !important;
+    width: 100% !important;
+    object-fit: contain !important;
+  }
+}

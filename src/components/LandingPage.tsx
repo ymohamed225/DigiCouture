@@ -343,24 +343,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         </div>
 
-        {/* 3. HERO MOCKUP INTERFACE DISPLAY */}
-        {/* 3. HERO MOCKUP INTERFACE DISPLAY (WEB + MOBILE EXPO - ALIGNEMENT HAUTEUR PARFAIT) */}
-        <div style={{
+        {/* 3. HERO MOCKUP INTERFACE DISPLAY (WEB + MOBILE EXPO - RESPONSIVE FLUIDE) */}
+        <div className="hero-mockups-container" style={{
           maxWidth: '1240px',
-          margin: '4rem auto 0 auto',
+          margin: '3rem auto 0 auto',
           display: 'flex',
-          alignItems: 'stretch',
+          alignItems: 'center',
           justifyContent: 'center',
           gap: '1.75rem',
-          height: '560px',
-          position: 'relative'
+          flexWrap: 'wrap',
+          width: '100%',
+          boxSizing: 'border-box'
         }}>
           {/* Version Web Browser */}
           <div style={{
-            flex: 1,
-            height: '100%',
+            flex: '1 1 500px',
+            maxWidth: '100%',
             borderRadius: '24px',
-            border: '1px solid rgba(212, 175, 55, 0.4)',
+            border: '1.5px solid rgba(212, 175, 55, 0.4)',
             boxShadow: '0 30px 70px -15px rgba(212, 175, 55, 0.25)',
             backgroundColor: '#151210',
             padding: '0.75rem',
@@ -372,14 +372,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <img 
               src="/digicouture_hero_app_1786838668525.jpg" 
               alt="DigiCouture Web Showcase" 
-              style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '16px' }}
+              style={{ width: '100%', height: 'auto', maxHeight: '520px', objectFit: 'contain', borderRadius: '16px' }}
             />
           </div>
 
           {/* Version Mobile Smartphone */}
           <div style={{
             width: '280px',
-            height: '100%',
+            maxWidth: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -388,7 +388,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <img 
               src="/digicouture_mobile_hero.png" 
               alt="DigiCouture Mobile Showcase" 
-              style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 20px 30px rgba(0, 0, 0, 0.15))' }}
+              style={{ width: '100%', height: 'auto', maxHeight: '520px', objectFit: 'contain', filter: 'drop-shadow(0 20px 30px rgba(0, 0, 0, 0.15))' }}
             />
           </div>
         </div>
