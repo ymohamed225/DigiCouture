@@ -1,0 +1,25 @@
+{
+  "short_name": "DigiCouture",
+  "name": "DigiCouture — La couture mieux organisée",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#FAF8F5",
+  "theme_color": "#D4AF37",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "description": "Application SaaS de gestion pour couturiers, stylistes et ateliers de couture à Abidjan et en Afrique.",
+  "categories": ["business", "lifestyle", "shopping"]
+}

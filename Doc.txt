@@ -1,0 +1,12 @@
+1)Lancer le projet Mobile depuis le Terminal
+Ouvrez votre terminal (PowerShell) et exécutez la commande suivante :
+
+powershell
+
+2)
+cd c:\Users\yacouba.mohamed\Documents\Mes_Projet\DigiCouture\mobile_app
+npx expo start --android
+(Ou npm run android).
+
+pour demarerer
+npx expo start --android --clear

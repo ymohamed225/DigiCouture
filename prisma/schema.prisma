@@ -1,0 +1,829 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
+enum SubscriptionPlanTier {
+  FREE
+  STARTER
+  PRO
+  VIP
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  active
+  trialing
+  past_due
+  canceled
+  expired
+}
+
+enum RoleName {
+  OWNER
+  ADMIN
+  MANAGER
+  COUTURIER
+  TAILOR
+  CUTTER
+  EMBROIDERER
+  CASHIER
+  RECEPTIONIST
+  VIEWER
+}
+
+enum UrgencyLevel {
+  normale
+  urgente
+  tres_urgente
+}
+
+enum ProductionStatus {
+  commande_recue
+  mesures_prises
+  mesures_validees
+  decoupe
+  couture
+  finitions
+  essayage
+  prete
+  livree
+}
+
+enum TaskType {
+  CUTTING
+  SEWING
+  EMBROIDERY
+  FINISHING
+  IRONING
+  FITTING
+  PACKAGING
+}
+
+enum TaskStatus {
+  pending
+  in_progress
+  review
+  completed
+  blocked
+}
+
+enum FittingStatus {
+  SCHEDULED
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+}
+
+enum PaymentMethodEnum {
+  CINETPAY
+  WAVE
+  ORANGE_MONEY
+  MTN_MONEY
+  MOOV_MONEY
+  CARD
+  CASH
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  pending
+  completed
+  failed
+  refunded
+}
+
+enum NotificationChannel {
+  whatsapp
+  sms
+  email
+  push
+}
+
+enum NotificationEvent {
+  ORDER_CREATED
+  ORDER_STATUS_CHANGED
+  PAYMENT_RECEIVED
+  FITTING_REMINDER
+  ORDER_READY
+  ORDER_DELIVERED
+  PAYMENT_REMINDER
+}
+
+// -----------------------------------------------------------------------------
+// 1. ATELIER & TENANT MULTI-TENANT
+// -----------------------------------------------------------------------------
+model Atelier {
+  id                    String        @id @default(uuid())
+  name                  String        @db.VarChar(150)
+  slug                  String        @unique @db.VarChar(150)
+  ownerName             String        @db.VarChar(100)
+  whatsapp              String        @db.VarChar(30)
+  city                  String        @default("Abidjan") @db.VarChar(100)
+  address               String?       @db.VarChar(255)
+  logoUrl               String?       @db.Text
+  coverUrl              String?       @db.Text
+  currency              String        @default("FCFA") @db.VarChar(10)
+  measurementUnit       String        @default("cm") @db.VarChar(10)
+  enablePublicCatalogue Boolean       @default(true)
+  registeredAt          String        @db.VarChar(30)
+
+  users                 User[]
+  subscriptions         Subscription[]
+  clients               Client[]
+  garmentTypes          GarmentType[]
+  fabrics               Fabric[]
+  garments              Garment[]
+  orders                Order[]
+  productionTasks       ProductionTask[]
+  fittingSessions       FittingSession[]
+  payments              Payment[]
+  receipts              Receipt[]
+  notificationTemplates NotificationTemplate[]
+  notifications         Notification[]
+  products              Product[]
+  auditLogs             AuditLog[]
+  attachments           Attachment[]
+
+  @@index([whatsapp])
+  @@index([slug])
+  @@map("ateliers")
+}
+
+// -----------------------------------------------------------------------------
+// 2. UTILISATEURS & PERMISSIONS (RBAC)
+// -----------------------------------------------------------------------------
+model User {
+  id           String   @id @default(uuid())
+  atelierId    String   @db.VarChar(64)
+  fullName     String   @db.VarChar(100)
+  phone        String   @unique @db.VarChar(30)
+  email        String?  @db.VarChar(150)
+  passwordHash String?  @db.VarChar(255)
+  roleId       String?  @db.VarChar(64)
+  createdAt    String   @db.VarChar(30)
+
+  atelier      Atelier  @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  role         Role?    @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  tasksAssigned ProductionTask[]
+
+  @@index([atelierId])
+  @@map("users")
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        RoleName         @default(OWNER)
+  description String?          @db.VarChar(255)
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  code        String           @unique @db.VarChar(100)
+  name        String           @db.VarChar(100)
+  description String?          @db.VarChar(255)
+
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @db.VarChar(64)
+  permissionId String     @db.VarChar(64)
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// -----------------------------------------------------------------------------
+// 3. ABONNEMENTS SAAS (BILLING)
+// -----------------------------------------------------------------------------
+model SubscriptionPlan {
+  id              String               @id @default(uuid())
+  code            String               @unique @default("FREE") @db.VarChar(50)
+  tier            SubscriptionPlanTier @default(FREE)
+  name            String               @db.VarChar(100)
+  priceMonthly    Int                  @default(0)
+  priceYearly     Int                  @default(0)
+  maxUsers        Int                  @default(1)
+  maxClients      Int                  @default(50)
+  maxOrders       Int                  @default(100)
+  storageLimitMb  Int                  @default(500)
+  features        Json?
+
+  subscriptions   Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id            String              @id @default(uuid())
+  atelierId     String              @db.VarChar(64)
+  planId        String              @db.VarChar(64)
+  status        SubscriptionStatus  @default(active)
+  startsAt      String              @db.VarChar(30)
+  endsAt        String?             @db.VarChar(30)
+  canceledAt    String?             @db.VarChar(30)
+
+  atelier       Atelier             @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  plan          SubscriptionPlan    @relation(fields: [planId], references: [id])
+  events        SubscriptionEvent[]
+
+  @@index([atelierId])
+  @@map("subscriptions")
+}
+
+model SubscriptionEvent {
+  id             String       @id @default(uuid())
+  subscriptionId String       @db.VarChar(64)
+  eventType      String       @db.VarChar(50)
+  details        Json?
+  eventDate      String       @db.VarChar(30)
+
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@map("subscription_events")
+}
+
+// -----------------------------------------------------------------------------
+// 4. CLIENTS & PORTAIL CLIENT VIP
+// -----------------------------------------------------------------------------
+model Client {
+  id             String                @id @default(uuid())
+  atelierId      String                @db.VarChar(64)
+  customerCode   String                @db.VarChar(50)
+  fullName       String                @db.VarChar(100)
+  whatsapp       String                @db.VarChar(30)
+  address        String?               @db.VarChar(255)
+  country        String?               @default("Côte d'Ivoire") @db.VarChar(100)
+  notes          String?               @db.Text
+  avatarUrl      String?               @db.Text
+  createdAt      String                @db.VarChar(30)
+  updatedAt      String?               @db.VarChar(30)
+
+  atelier        Atelier               @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  contacts       ClientContact[]
+  profiles       MeasurementProfile[]
+  orders         Order[]
+  fittings       FittingSession[]
+  portalTokens   CustomerPortalToken[]
+
+  @@unique([atelierId, customerCode])
+  @@index([atelierId, id])
+  @@map("clients")
+}
+
+model ClientContact {
+  id           String   @id @default(uuid())
+  clientId     String   @db.VarChar(64)
+  contactName  String   @db.VarChar(100)
+  relationship String   @db.VarChar(50)
+  phone        String   @db.VarChar(30)
+
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("client_contacts")
+}
+
+model CustomerPortalToken {
+  id        String   @id @default(uuid())
+  clientId  String   @db.VarChar(64)
+  token     String   @unique @db.VarChar(128)
+  expiresAt String   @db.VarChar(30)
+
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("customer_portal_tokens")
+}
+
+// -----------------------------------------------------------------------------
+// 5. MENSURATIONS & HISTORIQUE MORPHOLOGIQUE
+// -----------------------------------------------------------------------------
+model MeasurementProfile {
+  id           String        @id @default(uuid())
+  clientId     String        @db.VarChar(64)
+  profileName  String        @default("Principal") @db.VarChar(100)
+  category     String        @default("femme") @db.VarChar(50)
+
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  measurements Measurement[]
+
+  @@index([clientId])
+  @@map("measurement_profiles")
+}
+
+model Measurement {
+  id                     String               @id @default(uuid())
+  profileId              String               @db.VarChar(64)
+  epaules                Decimal              @default(0) @db.Decimal(6, 2)
+  poitrine               Decimal              @default(0) @db.Decimal(6, 2)
+  sousPoitrine           Decimal              @default(0) @db.Decimal(6, 2)
+  hauteurPoitrine        Decimal              @default(0) @db.Decimal(6, 2)
+  carrureDevant          Decimal              @default(0) @db.Decimal(6, 2)
+  carrureDos             Decimal              @default(0) @db.Decimal(6, 2)
+  tourCou                Decimal              @default(0) @db.Decimal(6, 2)
+  tourBras               Decimal              @default(0) @db.Decimal(6, 2)
+  tourPoignet            Decimal              @default(0) @db.Decimal(6, 2)
+  longueurManche         Decimal              @default(0) @db.Decimal(6, 2)
+  longueurTailleDevant   Decimal              @default(0) @db.Decimal(6, 2)
+  longueurTailleDos      Decimal              @default(0) @db.Decimal(6, 2)
+  tourTaille             Decimal              @default(0) @db.Decimal(6, 2)
+  tourHanche             Decimal              @default(0) @db.Decimal(6, 2)
+  hauteurHanches         Decimal              @default(0) @db.Decimal(6, 2)
+  longueurBas            Decimal              @default(0) @db.Decimal(6, 2)
+  longueurJupe           Decimal              @default(0) @db.Decimal(6, 2)
+  longueurPantalon       Decimal              @default(0) @db.Decimal(6, 2)
+  entrejambe             Decimal              @default(0) @db.Decimal(6, 2)
+  cuisse                 Decimal              @default(0) @db.Decimal(6, 2)
+  tourGenou              Decimal              @default(0) @db.Decimal(6, 2)
+  tourCheville           Decimal              @default(0) @db.Decimal(6, 2)
+  longueurGrandBoubou    Decimal              @default(0) @db.Decimal(6, 2)
+  largeurEnvergureBoubou Decimal              @default(0) @db.Decimal(6, 2)
+  customFields           Json?
+  updatedAt              String               @db.VarChar(30)
+
+  profile                MeasurementProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  history                MeasurementHistory[]
+
+  @@index([profileId])
+  @@map("measurements")
+}
+
+model MeasurementHistory {
+  id            String      @id @default(uuid())
+  measurementId String      @db.VarChar(64)
+  snapshotData  Json
+  recordedAt    String      @db.VarChar(30)
+
+  measurement   Measurement @relation(fields: [measurementId], references: [id], onDelete: Cascade)
+
+  @@index([measurementId])
+  @@map("measurement_history")
+}
+
+model OrderMeasurementSnapshot {
+  id                     String   @id @default(uuid())
+  orderId                String   @unique @db.VarChar(64)
+  atelierId              String   @db.VarChar(64)
+  clientId               String   @db.VarChar(64)
+  epaules                Decimal  @default(0) @db.Decimal(6, 2)
+  poitrine               Decimal  @default(0) @db.Decimal(6, 2)
+  sousPoitrine           Decimal  @default(0) @db.Decimal(6, 2)
+  hauteurPoitrine        Decimal  @default(0) @db.Decimal(6, 2)
+  carrureDevant          Decimal  @default(0) @db.Decimal(6, 2)
+  carrureDos             Decimal  @default(0) @db.Decimal(6, 2)
+  tourCou                Decimal  @default(0) @db.Decimal(6, 2)
+  tourBras               Decimal  @default(0) @db.Decimal(6, 2)
+  tourPoignet            Decimal  @default(0) @db.Decimal(6, 2)
+  longueurManche         Decimal  @default(0) @db.Decimal(6, 2)
+  longueurTailleDevant   Decimal  @default(0) @db.Decimal(6, 2)
+  longueurTailleDos      Decimal  @default(0) @db.Decimal(6, 2)
+  tourTaille             Decimal  @default(0) @db.Decimal(6, 2)
+  tourHanche             Decimal  @default(0) @db.Decimal(6, 2)
+  hauteurHanches         Decimal  @default(0) @db.Decimal(6, 2)
+  longueurBas            Decimal  @default(0) @db.Decimal(6, 2)
+  longueurJupe           Decimal  @default(0) @db.Decimal(6, 2)
+  longueurPantalon       Decimal  @default(0) @db.Decimal(6, 2)
+  entrejambe             Decimal  @default(0) @db.Decimal(6, 2)
+  cuisse                 Decimal  @default(0) @db.Decimal(6, 2)
+  tourGenou              Decimal  @default(0) @db.Decimal(6, 2)
+  tourCheville           Decimal  @default(0) @db.Decimal(6, 2)
+  longueurGrandBoubou    Decimal  @default(0) @db.Decimal(6, 2)
+  largeurEnvergureBoubou Decimal  @default(0) @db.Decimal(6, 2)
+  customFields           Json?
+  capturedAt             String   @db.VarChar(30)
+
+  order                  Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([atelierId, orderId])
+  @@map("order_measurement_snapshots")
+}
+
+// -----------------------------------------------------------------------------
+// 6. COMMANDES & TISSUS
+// -----------------------------------------------------------------------------
+model GarmentType {
+  id          String    @id @default(uuid())
+  atelierId   String    @db.VarChar(64)
+  name        String    @db.VarChar(100)
+  category    String    @db.VarChar(50)
+
+  atelier     Atelier   @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  garments    Garment[]
+
+  @@index([atelierId])
+  @@map("garment_types")
+}
+
+model Fabric {
+  id          String    @id @default(uuid())
+  atelierId   String    @db.VarChar(64)
+  name        String    @db.VarChar(100)
+  color       String?   @db.VarChar(50)
+  origin      String?   @db.VarChar(100)
+
+  atelier     Atelier   @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  garments    Garment[]
+
+  @@index([atelierId])
+  @@map("fabrics")
+}
+
+model Garment {
+  id            String       @id @default(uuid())
+  atelierId     String       @db.VarChar(64)
+  garmentTypeId String?      @db.VarChar(64)
+  fabricId      String?      @db.VarChar(64)
+  title         String       @db.VarChar(150)
+  description   String?      @db.Text
+  modelImageUrl String?      @db.Text
+
+  atelier       Atelier      @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  garmentType   GarmentType? @relation(fields: [garmentTypeId], references: [id], onDelete: SetNull)
+  fabric        Fabric?      @relation(fields: [fabricId], references: [id], onDelete: SetNull)
+  orderItems    OrderItem[]
+
+  @@index([atelierId])
+  @@map("garments")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  atelierId   String   @db.VarChar(64)
+  name        String   @db.VarChar(150)
+  category    String   @db.VarChar(100)
+  price       Int      @default(0)
+  description String?  @db.Text
+  imageUrl    String?  @db.Text
+
+  atelier     Atelier  @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+
+  @@index([atelierId])
+  @@map("products")
+}
+
+model Order {
+  id                  String             @id @default(uuid())
+  atelierId           String             @db.VarChar(64)
+  clientId            String             @db.VarChar(64)
+  orderNumber         String             @db.VarChar(50)
+  code                String?            @db.VarChar(50)
+  clientName          String             @db.VarChar(100)
+  clientWhatsapp      String             @db.VarChar(30)
+  modelName           String             @default("Modèle sur mesure") @db.VarChar(150)
+  modelCategory       String?            @default("Création") @db.VarChar(100)
+  garmentType         String?            @default("Sur-mesure") @db.VarChar(100)
+  fabricName          String?            @default("Bazin Riche Luxe") @db.VarChar(100)
+  fabricColor         String?            @default("") @db.VarChar(50)
+  description         String?            @db.Text
+  specialInstructions String?            @db.Text
+  dueDate             String?            @db.VarChar(30)
+  deliveryDate        String             @db.VarChar(30)
+  urgency             UrgencyLevel       @default(normale)
+  totalAmount         Int                @default(0)
+  depositAmount       Int                @default(0)
+  paidAmount          Int                @default(0)
+  remainingAmount     Int                @default(0)
+  currency            String             @default("FCFA") @db.VarChar(10)
+  status              ProductionStatus   @default(commande_recue)
+  modelImageUrl       String?            @db.Text
+  notes               String?            @db.Text
+  createdBy           String?            @db.VarChar(64)
+  createdAt           String             @db.VarChar(30)
+  updatedAt           String?            @db.VarChar(30)
+  version             Int                @default(1)
+
+  atelier             Atelier            @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  client              Client                   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  items               OrderItem[]
+  measurementSnapshot OrderMeasurementSnapshot?
+  statusHistory       OrderStatusHistory[]
+  tasks               ProductionTask[]
+  fittings            FittingSession[]
+  payments            Payment[]
+  receipts            Receipt[]
+  notifications       Notification[]
+
+  @@unique([atelierId, orderNumber])
+  @@index([atelierId, status])
+  @@index([orderNumber])
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String   @db.VarChar(64)
+  garmentId  String?  @db.VarChar(64)
+  itemTitle  String   @db.VarChar(150)
+  unitPrice  Int      @default(0)
+  quantity   Int      @default(1)
+
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  garment    Garment? @relation(fields: [garmentId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id         String            @id @default(uuid())
+  orderId    String            @db.VarChar(64)
+  fromStatus ProductionStatus?
+  toStatus   ProductionStatus
+  changedAt  String            @db.VarChar(30)
+  time       String?           @db.VarChar(20)
+  changedBy  String?           @db.VarChar(100)
+  comment    String?           @db.Text
+  note       String?           @db.VarChar(255)
+
+  order      Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, changedAt])
+  @@map("order_status_history")
+}
+
+// -----------------------------------------------------------------------------
+// 7. PRODUCTION & ESSAYAGES
+// -----------------------------------------------------------------------------
+model ProductionTask {
+  id               String                   @id @default(uuid())
+  atelierId        String                   @db.VarChar(64)
+  orderId          String                   @db.VarChar(64)
+  type             TaskType                 @default(SEWING)
+  taskName         String?                  @db.VarChar(150)
+  assignedUserId   String?                  @db.VarChar(64)
+  assignedUserName String?                  @db.VarChar(100)
+  status           TaskStatus               @default(pending)
+  startedAt        String?                  @db.VarChar(30)
+  completedAt      String?                  @db.VarChar(30)
+  notes            String?                  @db.Text
+  createdAt        String                   @db.VarChar(30)
+  updatedAt        String?                  @db.VarChar(30)
+
+  atelier          Atelier                  @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  order            Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  assignedUser     User?                    @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+  history          ProductionStatusHistory[]
+
+  @@index([atelierId, orderId])
+  @@index([assignedUserId])
+  @@map("production_tasks")
+}
+
+model ProductionStatusHistory {
+  id          String         @id @default(uuid())
+  taskId      String         @db.VarChar(64)
+  fromStatus  TaskStatus
+  toStatus    TaskStatus
+  changedAt   String         @db.VarChar(30)
+
+  task        ProductionTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("production_status_history")
+}
+
+model FittingSession {
+  id           String        @id @default(uuid())
+  atelierId    String        @db.VarChar(64)
+  orderId      String        @db.VarChar(64)
+  clientId     String        @db.VarChar(64)
+  scheduledAt  String        @db.VarChar(30)
+  status       FittingStatus @default(SCHEDULED)
+  notes        String?       @db.Text
+  adjustments  String?       @db.Text
+  nextAction   String?       @db.VarChar(150)
+  createdAt    String        @db.VarChar(30)
+  updatedAt    String?       @db.VarChar(30)
+
+  atelier      Atelier       @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([atelierId, scheduledAt])
+  @@index([orderId])
+  @@index([clientId])
+  @@map("fitting_sessions")
+}
+
+// -----------------------------------------------------------------------------
+// 8. PAIEMENTS & CINETPAY
+// -----------------------------------------------------------------------------
+model PaymentMethod {
+  id          String    @id @default(uuid())
+  code        String    @unique @db.VarChar(50)
+  name        String    @db.VarChar(100)
+
+  payments    Payment[]
+
+  @@map("payment_methods")
+}
+
+model Payment {
+  id                    String            @id @default(uuid())
+  atelierId             String            @db.VarChar(64)
+  orderId               String            @db.VarChar(64)
+  paymentMethodId       String?           @db.VarChar(64)
+  amount                Int
+  currency              String            @default("FCFA") @db.VarChar(10)
+  method                PaymentMethodEnum @default(CASH)
+  status                PaymentStatus     @default(completed)
+  reference             String            @unique @db.VarChar(100)
+  provider              String            @default("SYSTEM") @db.VarChar(50)
+  providerTransactionId String?           @db.VarChar(100)
+  clientName            String?           @db.VarChar(100)
+  note                  String?           @db.Text
+  createdAt             String            @db.VarChar(30)
+  updatedAt             String?           @db.VarChar(30)
+
+  atelier               Atelier           @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  order                 Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentMethod         PaymentMethod?    @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+  attempts              PaymentAttempt[]
+  receipts              Receipt[]
+
+  @@index([atelierId, createdAt])
+  @@index([orderId])
+  @@index([reference])
+  @@map("payments")
+}
+
+model PaymentAttempt {
+  id                 String               @id @default(uuid())
+  paymentId          String               @db.VarChar(64)
+  amount             Int
+  status             PaymentStatus        @default(pending)
+  attemptedAt        String               @db.VarChar(30)
+
+  payment            Payment              @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  cinetpayTransaction CinetPayTransaction?
+
+  @@index([paymentId])
+  @@map("payment_attempts")
+}
+
+model CinetPayTransaction {
+  id               String         @id @default(uuid())
+  paymentAttemptId String         @unique @db.VarChar(64)
+  transactionId    String         @unique @db.VarChar(100)
+  cpayTransactionId String?       @db.VarChar(100)
+  status           String         @db.VarChar(50)
+  rawResponse      Json?
+  createdAt        String         @db.VarChar(30)
+
+  paymentAttempt   PaymentAttempt @relation(fields: [paymentAttemptId], references: [id], onDelete: Cascade)
+
+  @@map("cinetpay_transactions")
+}
+
+model Receipt {
+  id            String   @id @default(uuid())
+  atelierId     String   @db.VarChar(64)
+  orderId       String   @db.VarChar(64)
+  paymentId     String?  @db.VarChar(64)
+  receiptNumber String   @db.VarChar(100)
+  amount        Int      @default(0)
+  currency      String   @default("FCFA") @db.VarChar(10)
+  issuedAt      String   @db.VarChar(30)
+  pdfUrl        String?  @db.Text
+  status        String   @default("ISSUED") @db.VarChar(30)
+  createdAt     String   @db.VarChar(30)
+
+  atelier       Atelier  @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  payment       Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@unique([atelierId, receiptNumber])
+  @@index([atelierId])
+  @@index([orderId])
+  @@index([paymentId])
+  @@map("receipts")
+}
+
+// -----------------------------------------------------------------------------
+// 9. NOTIFICATIONS, ATTACHMENTS & AUDIT
+// -----------------------------------------------------------------------------
+model NotificationTemplate {
+  id           String            @id @default(uuid())
+  atelierId    String?           @db.VarChar(64)
+  event        NotificationEvent
+  templateText String            @db.Text
+  createdAt    String            @db.VarChar(30)
+
+  atelier      Atelier?          @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+
+  @@unique([atelierId, event])
+  @@map("notification_templates")
+}
+
+model Notification {
+  id         String              @id @default(uuid())
+  atelierId  String              @db.VarChar(64)
+  orderId    String?             @db.VarChar(64)
+  event      NotificationEvent   @default(ORDER_CREATED)
+  channel    NotificationChannel @default(whatsapp)
+  recipient  String              @db.VarChar(50)
+  message    String              @db.Text
+  sentAt     String              @db.VarChar(30)
+
+  atelier    Atelier             @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  order      Order?              @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  logs       NotificationLog[]
+
+  @@index([atelierId])
+  @@index([orderId])
+  @@map("notifications")
+}
+
+model NotificationLog {
+  id              String       @id @default(uuid())
+  notificationId  String       @db.VarChar(64)
+  provider        String       @default("WhatsApp") @db.VarChar(50)
+  status          String       @db.VarChar(30)
+  responsePayload Json?
+  loggedAt        String       @db.VarChar(30)
+
+  notification    Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId])
+  @@map("notification_logs")
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  atelierId  String   @db.VarChar(64)
+  entityType String   @db.VarChar(50)
+  entityId   String   @db.VarChar(64)
+  storageKey String   @db.VarChar(255)
+  url        String   @db.Text
+  mimeType   String   @db.VarChar(100)
+  size       Int      @default(0)
+  createdAt  String   @db.VarChar(30)
+
+  atelier    Atelier  @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+
+  @@index([atelierId, entityType, entityId])
+  @@index([storageKey])
+  @@map("attachments")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  atelierId String   @db.VarChar(64)
+  userId    String?  @db.VarChar(64)
+  action    String   @db.VarChar(100)
+  details   Json?
+  ipAddress String?  @db.VarChar(45)
+  createdAt String   @db.VarChar(30)
+
+  atelier   Atelier  @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+
+  @@index([atelierId])
+  @@map("audit_logs")
+}
+
+model IdempotencyKey {
+  id           String   @id @default(uuid())
+  key          String   @unique @db.VarChar(128)
+  atelierId    String?  @db.VarChar(64)
+  statusCode   Int
+  responseBody Json
+  createdAt    String   @db.VarChar(30)
+
+  @@index([key])
+  @@map("idempotency_keys")
+}
+
+model OtpChallenge {
+  id         String    @id @default(uuid())
+  phone      String    @db.VarChar(50)
+  codeHash   String    @db.VarChar(255)
+  expiresAt  String    @db.VarChar(30)
+  attempts   Int       @default(0)
+  consumedAt String?   @db.VarChar(30)
+  purpose    String    @default("AUTH") @db.VarChar(50)
+  createdAt  String    @db.VarChar(30)
+
+  @@index([phone, purpose])
+  @@index([expiresAt])
+  @@map("otp_challenges")
+}

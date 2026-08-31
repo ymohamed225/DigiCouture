@@ -1,0 +1,24 @@
+{
+  "name": "DigiCouture VIP",
+  "short_name": "DigiCouture",
+  "description": "Application SaaS Offline-First de Gestion d'Ateliers de Couture",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0B0D",
+  "theme_color": "#D4AF37",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
