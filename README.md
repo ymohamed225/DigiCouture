@@ -1,4 +1,4 @@
-# ✨ DigiCouture VIP — Solution Complète de Gestion d'Atelier de Haute Couture
+# ✂️ DigiCouture VIP — Solution Complète de Gestion d'Atelier de Haute Couture
 
 ![DigiCouture VIP Banner](https://img.shields.io/badge/DigiCouture-Haute%20Couture%20VIP-D4AF37?style=for-the-badge&logo=storybook&logoColor=white)
 ![React Native](https://img.shields.io/badge/React%20Native-Expo%20v54-61DAFB?style=for-the-badge&logo=react&logoColor=black)
@@ -180,7 +180,7 @@ npx eas build -p android --profile preview
 ## 🚀 Guide de Déploiement Cloud (Vercel, Railway, Render)
 
 ### 1. 🌐 Déploiement Frontend Web sur Vercel (`vercel.com`)
-1. Connectez votre compte GitHub sur **[Vercel.com](https://vercel.com)**.
+1. Connectez votre compte GitHub sur [Vercel.com](https://vercel.com).
 2. Cliquez sur **Add New... ➔ Project** et sélectionnez le dépôt **`DigiCouture`**.
 3. Vercel détecte automatiquement `Vite`. Les paramètres par défaut sont prêts :
    - **Framework Preset** : `Vite`
@@ -192,7 +192,7 @@ npx eas build -p android --profile preview
 ---
 
 ### 2. 🚂 Déploiement Backend API sur Railway (`railway.app`)
-1. Connectez-vous sur **[Railway.app](https://railway.app)** et créez un **New Project**.
+1. Connectez-vous sur [Railway.app](https://railway.app) et créez un **New Project**.
 2. Sélectionnez **Deploy from GitHub repo** et choisissez `DigiCouture`.
 3. Ajoutez un service **MySQL** sur Railway.
 4. Définissez les variables d'environnement dans le service API :
@@ -205,7 +205,7 @@ npx eas build -p android --profile preview
 ---
 
 ### 3. 🎨 Déploiement Backend API sur Render (`render.com`)
-1. Allez sur **[Render.com](https://render.com)** et créez un **Web Service**.
+1. Allez sur [Render.com](https://render.com) et créez un **Web Service**.
 2. Connectez le dépôt `DigiCouture`.
 3. Configurez les options :
    - **Environment** : `Node`
@@ -228,5 +228,3 @@ npx eas build -p android --profile preview
 ## 📜 Licence & Propriété
 Développé avec passion pour l'excellence de la Couture Africaine et la digitalisation des Maisons de Couture.  
 Tous droits réservés © 2026 **Maison DigiCouture VIP**.
-#   D i g i C o u t u r e  
- 
