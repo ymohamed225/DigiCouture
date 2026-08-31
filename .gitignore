@@ -1,6 +1,27 @@
+# Dependencies
 node_modules/
-.expo/
+.pnpm-store/
+
+# Production Builds
 dist/
 build/
+.expo/
 .eas/
+
+# Environment & Keys
+.env
+.env.local
+.env.production
+*.pem
+
+# IDE & System
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs & Cache
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
