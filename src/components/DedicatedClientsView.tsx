@@ -717,8 +717,8 @@ export const DedicatedClientsView: React.FC<DedicatedClientsViewProps> = ({
 
               <div>
                 <label style={{ fontSize: '0.85rem', fontWeight: 800, display: 'block', marginBottom: '0.35rem', color: '#334155' }}>Numéro WhatsApp Officiel *</label>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: '#FAF8F5', padding: '5px', borderRadius: '14px', border: '1.5px solid #D4AF37' }}>
-                  <div style={{ backgroundColor: '#FFFDF5', border: '1px solid #D4AF37', padding: '0.6rem 0.8rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.9rem', color: '#0F172A' }}>
+                <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: '14px', border: '1.5px solid #D4AF37', overflow: 'hidden', boxSizing: 'border-box', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                  <div style={{ backgroundColor: '#FFFDF5', borderRight: '1.5px solid #D4AF37', padding: '0.65rem 0.85rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.9rem', color: '#0F172A', flexShrink: 0 }}>
                     <span>🇨🇮</span> +225
                   </div>
                   <input 
@@ -727,7 +727,7 @@ export const DedicatedClientsView: React.FC<DedicatedClientsViewProps> = ({
                     placeholder="0707070700"
                     value={whatsappInput.replace('+225', '').trim()}
                     onChange={(e) => setWhatsappInput(e.target.value)}
-                    style={{ flex: 1, padding: '0.6rem', border: 'none', background: 'transparent', fontSize: '1rem', fontWeight: 700, color: '#0F172A', outline: 'none' }}
+                    style={{ flex: 1, minWidth: 0, padding: '0.65rem 0.85rem', border: 'none', background: 'transparent', fontSize: '1rem', fontWeight: 700, color: '#0F172A', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
