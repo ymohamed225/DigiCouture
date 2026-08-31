@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: digicouture-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm run server
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production

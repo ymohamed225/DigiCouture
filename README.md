@@ -177,6 +177,44 @@ npx eas build -p android --profile preview
 
 ---
 
+## 🚀 Guide de Déploiement Cloud (Vercel, Railway, Render)
+
+### 1. 🌐 Déploiement Frontend Web sur Vercel (`vercel.com`)
+1. Connectez votre compte GitHub sur **[Vercel.com](https://vercel.com)**.
+2. Cliquez sur **Add New... ➔ Project** et sélectionnez le dépôt **`DigiCouture`**.
+3. Vercel détecte automatiquement `Vite`. Les paramètres par défaut sont prêts :
+   - **Framework Preset** : `Vite`
+   - **Build Command** : `npm run build`
+   - **Output Directory** : `dist`
+4. Ajoutez la variable d'environnement `VITE_API_URL` avec l'URL de votre API backend.
+5. Cliquez sur **Deploy**. Le fichier `vercel.json` configuré gèrera automatiquement le routage SPA.
+
+---
+
+### 2. 🚂 Déploiement Backend API sur Railway (`railway.app`)
+1. Connectez-vous sur **[Railway.app](https://railway.app)** et créez un **New Project**.
+2. Sélectionnez **Deploy from GitHub repo** et choisissez `DigiCouture`.
+3. Ajoutez un service **MySQL** sur Railway.
+4. Définissez les variables d'environnement dans le service API :
+   - `PORT` = `5000`
+   - `NODE_ENV` = `production`
+   - `DATABASE_URL` = (l'URL fournie par le service MySQL Railway)
+   - `FRONTEND_URL` = (l'URL de votre site Vercel)
+5. Railway utilisera automatiquement le fichier `railway.json` et le `Procfile` pour démarrer l'API sur `/health`.
+
+---
+
+### 3. 🎨 Déploiement Backend API sur Render (`render.com`)
+1. Allez sur **[Render.com](https://render.com)** et créez un **Web Service**.
+2. Connectez le dépôt `DigiCouture`.
+3. Configurez les options :
+   - **Environment** : `Node`
+   - **Build Command** : `npm install`
+   - **Start Command** : `npm run server`
+4. Ajoutez votre base de données MySQL ou PostgreSQL Managed Render.
+
+---
+
 ## 🗄️ Structure de la Base de Données MySQL (`digicouture_db`)
 
 - **`ateliers`** : Profils des ateliers, contacts WhatsApp, villes et formules d'abonnement SaaS.
