@@ -13,24 +13,22 @@
 
 ## 📸 Aperçu des Interfaces (Web & Mobile)
 
-<div align="center">
-
 ### 🌐 Version Web & Cockpit Administration SaaS
 ![Web Dashboard](docs/screenshots/web_dashboard.png)
 
-<br/>
+---
+
+### 🔑 Page de Connexion Web & 📱 Application Mobile Native
 
 | 🔑 Page de Connexion Web Haute Couture | 📱 Version Mobile Android (Expo Native App) |
-| :---: | :---: |
+| :--- | :--- |
 | ![Web Login Page](docs/screenshots/web_login.png) | ![Mobile App Android](docs/screenshots/mobile_app.png) |
 | *Accès sécurisé Atelier & OTP WhatsApp* | *App Native Android & Affiche QR Code* |
 
-<br/>
+---
 
 ### 🖨️ Affiche Catalogue QR Code & Impression A4
 ![Affiche QR Code A4](docs/screenshots/qr_poster_a4.png)
-
-</div>
 
 ---
 
