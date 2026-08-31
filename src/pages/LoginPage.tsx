@@ -191,28 +191,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
             {/* Champ de Saisie avec Sélecteur d'Indicatif Épuré (ex: 🇨🇮 +225) */}
             <div style={{
-              backgroundColor: '#FFFDF5',
-              borderRadius: '20px',
-              padding: '6px',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '18px',
               border: '2px solid #D4AF37',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.03)'
+              overflow: 'hidden',
+              boxShadow: '0 4px 14px rgba(212, 175, 55, 0.15)',
+              boxSizing: 'border-box'
             }}>
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
                 style={{
-                  backgroundColor: '#FFFFFF',
-                  padding: '0.65rem 0.75rem',
-                  borderRadius: '14px',
-                  border: '1.5px solid #D4AF37',
+                  backgroundColor: '#FFFDF5',
+                  padding: '0.75rem 0.85rem',
+                  border: 'none',
+                  borderRight: '1.5px solid #D4AF37',
                   fontWeight: 900,
                   fontSize: '0.95rem',
                   color: '#0F172A',
                   cursor: 'pointer',
-                  outline: 'none'
+                  outline: 'none',
+                  flexShrink: 0
                 }}
               >
                 {WEST_AFRICAN_COUNTRIES.map(c => (
@@ -229,14 +230,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 placeholder="0707070700"
                 style={{
                   flex: 1,
+                  minWidth: 0,
                   backgroundColor: '#FFFFFF',
-                  borderRadius: '14px',
-                  padding: '0.65rem 0.85rem',
-                  border: '1px solid #EAE5DF',
+                  padding: '0.75rem 1rem',
+                  border: 'none',
+                  outline: 'none',
                   fontWeight: 800,
-                  fontSize: '1.15rem',
+                  fontSize: '1.1rem',
                   color: '#0F172A',
-                  outline: 'none'
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
