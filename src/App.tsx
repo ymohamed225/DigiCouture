@@ -303,20 +303,21 @@ export function App() {
 
     setOrders(prev => [newOrd, ...prev]);
 
-    // Insertion BDD MySQL réelle liée à l'atelier
+    // Insertion BDD réelle liée à l'atelier
     try {
-      const res = await fetch('http://localhost:5000/api/orders', {
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      const res = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrd)
       });
       const data = await res.json();
       if (data.success) {
-        console.log('✅ Commande enregistrée en BDD MySQL:', data.order);
+        console.log('✅ Commande enregistrée en BDD:', data.order);
         alert(`✅ Commande N° ${newOrd.code} créée et sauvegardée dans la base de données avec succès !`);
       }
     } catch (err: any) {
-      console.error('Erreur enregistrement commande MySQL:', err);
+      console.error('Erreur enregistrement commande:', err);
     }
 
     // Si un acompte est versé, créer automatiquement l'encaissement initial
@@ -349,7 +350,8 @@ export function App() {
 
     // 2. Persistance BDD MySQL via Backend (évite le rejet/retour en arrière lors du polling 3s)
     try {
-      await fetch('http://localhost:5000/api/orders', {
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      await fetch(`${API_BASE}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedOrder)
@@ -408,9 +410,10 @@ export function App() {
       return o;
     }));
 
-    // Persistence immédiate BDD MySQL
+    // Persistence immédiate BDD
     try {
-      await fetch('http://localhost:5000/api/payments', {
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      await fetch(`${API_BASE}/payments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPay)
@@ -454,9 +457,10 @@ export function App() {
             return;
           }
 
-          // 1. Authentification OTP WhatsApp via Backend Express MySQL
+          // 1. Authentification OTP WhatsApp via Backend Express
           try {
-            const res = await fetch('http://localhost:5000/api/auth/verify-otp', {
+            const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+            const res = await fetch(`${API_BASE}/auth/verify-otp`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ phone: phoneInput, otp: otpInput || '1234' })
