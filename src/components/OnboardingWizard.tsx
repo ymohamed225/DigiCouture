@@ -237,7 +237,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
 
                   // Déclenchement / Vérification de l'OTP WhatsApp
                   try {
-                    const res = await fetch('http://localhost:5000/api/auth/send-otp', {
+                    const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+                    const res = await fetch(`${API_BASE}/auth/send-otp`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ phone: fullPhone })

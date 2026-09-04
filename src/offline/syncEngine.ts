@@ -65,9 +65,10 @@ class WebSyncEngine {
       }
 
       const atelierId = pendingItems[0].atelierId || 'atl-1787175204484';
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
 
       // 1. PUSH des données locales vers le serveur
-      const pushRes = await fetch('http://localhost:5000/api/sync/push', {
+      const pushRes = await fetch(`${API_BASE}/sync/push`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +88,7 @@ class WebSyncEngine {
 
       // 2. PULL des données modifiées depuis le serveur
       const lastSyncedAt = localStorage.getItem('dc_last_synced_at') || '2000-01-01T00:00:00.000Z';
-      const pullRes = await fetch(`http://localhost:5000/api/sync/pull?since=${encodeURIComponent(lastSyncedAt)}`, {
+      const pullRes = await fetch(`${API_BASE}/sync/pull?since=${encodeURIComponent(lastSyncedAt)}`, {
         headers: { 'X-Atelier-Id': atelierId },
       });
 
