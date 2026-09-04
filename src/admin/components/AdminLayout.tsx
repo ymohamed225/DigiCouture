@@ -150,7 +150,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       }}>
         <div style={{
           width: '100%',
-          padding: '24px 24px 48px',
+          padding: isMobile ? '12px 12px 36px' : '24px 24px 48px',
           boxSizing: 'border-box'
         }}>
           {children}

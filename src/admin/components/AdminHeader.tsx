@@ -114,8 +114,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       {/* Mobile Menu Toggle */}
       <button
         onClick={onMobileMenuOpen}
+        aria-label="Ouvrir le menu"
         style={{
-          display: window.innerWidth < 768 ? 'flex' : 'none',
+          display: sidebarWidth === 0 ? 'flex' : 'none',
           background: 'none', border: 'none',
           color: isDarkMode ? '#8B8B94' : '#64748B', cursor: 'pointer', padding: 4,
           alignItems: 'center',
