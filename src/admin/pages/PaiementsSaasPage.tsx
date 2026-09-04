@@ -211,6 +211,8 @@ export const PaiementsSaasPage: React.FC = () => {
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
+          exportEnabled
+          title="Historique des Encaissements SaaS"
         />
       )}
     </div>

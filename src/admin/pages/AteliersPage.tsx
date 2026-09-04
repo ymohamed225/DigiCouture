@@ -454,6 +454,8 @@ export const AteliersPage: React.FC<AteliersPageProps> = ({ onSelectAtelier }) =
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         actions={actions}
+        exportEnabled
+        title="Liste des Ateliers de Couture"
       />
 
       {/* Modal : Inscrire un Nouvel Atelier */}

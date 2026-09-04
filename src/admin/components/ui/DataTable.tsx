@@ -62,6 +62,30 @@ export function DataTable<T extends Record<string, any>>({
     }
   };
 
+  const handleExportClick = () => {
+    if (onExport) {
+      onExport();
+      return;
+    }
+    if (!data || !data.length) return;
+    const keys = columns.map(c => typeof c.key === 'string' ? c.key : String(c.key));
+    const headers = columns.map(c => c.header).join(';');
+    const rows = data.map(item => {
+      return keys.map(k => {
+        const val = item[k];
+        return `"${String(val ?? '').replace(/"/g, '""')}"`;
+      }).join(';');
+    });
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers, ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `export_${title ? title.toLowerCase().replace(/\s+/g, '_') : 'saas'}_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
   return (
@@ -84,9 +108,9 @@ export function DataTable<T extends Record<string, any>>({
               </div>
             )}
             {exportEnabled && (
-              <button onClick={onExport} style={styles.exportBtn}>
+              <button onClick={handleExportClick} style={styles.exportBtn}>
                 <Download size={14} />
-                Exporter
+                Exporter CSV
               </button>
             )}
           </div>
