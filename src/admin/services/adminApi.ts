@@ -4,7 +4,7 @@
 // ⚠️ Les données métier des ateliers (clients, commandes…) ne sont PAS exposées ici.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
+const BASE = ((import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '').replace(/\/api$/, '');
 
 async function fetchAdmin<T>(path: string, options?: RequestInit): Promise<T> {
   const token = sessionStorage.getItem('dc_admin_token') || localStorage.getItem('dc_token');
