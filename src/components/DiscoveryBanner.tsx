@@ -43,7 +43,8 @@ export const DiscoveryBanner: React.FC<DiscoveryBannerProps> = ({ atelierId, ate
   const fetchSubscription = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/subscription?atelierId=${atelierId}`);
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      const res = await fetch(`${API_BASE}/subscription?atelierId=${atelierId}`);
       const data = await res.json();
       if (data.success) {
         setSubData(data);

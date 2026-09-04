@@ -480,7 +480,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ atelier, onSaveAteli
                   
                   // 1. Suppression BDD MySQL Unifiée
                   try {
-                    await fetch(`http://localhost:5000/api/ateliers/${encodeURIComponent(atelierIdOrPhone)}`, {
+                    const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+                    await fetch(`${API_BASE}/ateliers/${encodeURIComponent(atelierIdOrPhone)}`, {
                       method: 'DELETE'
                     });
                   } catch (e) {

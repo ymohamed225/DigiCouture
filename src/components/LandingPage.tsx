@@ -1493,7 +1493,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                     // 2. Appel Backend avec le paramètre isLogin: true
                     try {
-                      const res = await fetch('http://localhost:5000/api/auth/send-otp', {
+                      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+                      const res = await fetch(`${API_BASE}/auth/send-otp`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ phone: `${countryCode}${phoneInput}`, isLogin: true })

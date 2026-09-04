@@ -168,28 +168,29 @@ export function App() {
     if (!atelier || !atelier.id || isDemoMode) return;
 
     const loadData = () => {
-      fetch(`http://localhost:5000/api/clients?atelierId=${atelier.id}`)
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      fetch(`${API_BASE}/clients?atelierId=${atelier.id}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) setClients(data);
         })
         .catch(() => console.log('Connexion clients offline'));
 
-      fetch(`http://localhost:5000/api/orders?atelierId=${atelier.id}`)
+      fetch(`${API_BASE}/orders?atelierId=${atelier.id}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) setOrders(data);
         })
         .catch(() => console.log('Connexion commandes offline'));
 
-      fetch(`http://localhost:5000/api/payments?atelierId=${atelier.id}`)
+      fetch(`${API_BASE}/payments?atelierId=${atelier.id}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) setPayments(data);
         })
         .catch(() => console.log('Connexion paiements offline'));
 
-      fetch(`http://localhost:5000/api/catalogue?atelierId=${atelier.id}`)
+      fetch(`${API_BASE}/catalogue?atelierId=${atelier.id}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data) && data.length > 0) setCatalogue(data);
@@ -230,7 +231,8 @@ export function App() {
 
     // Insertion BDD MySQL réelle liée à l'atelier
     try {
-      await fetch('http://localhost:5000/api/clients', {
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      await fetch(`${API_BASE}/clients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newClient)
@@ -258,7 +260,8 @@ export function App() {
     }));
 
     try {
-      await fetch('http://localhost:5000/api/measurements', {
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      await fetch(`${API_BASE}/measurements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedMeasurement)
@@ -533,9 +536,10 @@ export function App() {
             return;
           }
 
-          // 1. Authentification OTP WhatsApp via Backend Express MySQL (http://localhost:5000/api/auth/verify-otp)
+          // 1. Authentification OTP WhatsApp via Backend Express MySQL (/api/auth/verify-otp)
           try {
-            const res = await fetch('http://localhost:5000/api/auth/verify-otp', {
+            const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+            const res = await fetch(`${API_BASE}/auth/verify-otp`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ phone: phoneInput, otp: otpInput || '1234' })
@@ -865,7 +869,8 @@ export function App() {
 
                 // 2. Sauvegarde dans la BDD MySQL du serveur
                 try {
-                  await fetch('http://localhost:5000/api/catalogue', {
+                  const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+                  await fetch(`${API_BASE}/catalogue`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -897,7 +902,8 @@ export function App() {
 
                 // 2. Suppression dans la base MySQL du serveur
                 try {
-                  await fetch(`http://localhost:5000/api/catalogue/${id}?atelierId=${atelier.id}`, {
+                  const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+                  await fetch(`${API_BASE}/catalogue/${id}?atelierId=${atelier.id}`, {
                     method: 'DELETE'
                   });
                 } catch (e) {

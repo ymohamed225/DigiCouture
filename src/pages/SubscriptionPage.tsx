@@ -49,12 +49,14 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ atelierId, o
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+
   const loadData = async () => {
     try {
       setLoading(true);
       const [subRes, plansRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/subscription?atelierId=${atelierId}`),
-        fetch(`http://localhost:5000/api/subscription/plans`)
+        fetch(`${API_BASE}/subscription?atelierId=${atelierId}`),
+        fetch(`${API_BASE}/subscription/plans`)
       ]);
 
       const subJson = await subRes.json();
@@ -81,7 +83,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ atelierId, o
 
     try {
       setIsProcessing(true);
-      const res = await fetch('http://localhost:5000/api/payments/wave/create-checkout', {
+      const res = await fetch(`${API_BASE}/payments/wave/create-checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

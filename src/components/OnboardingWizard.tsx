@@ -273,7 +273,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
                   localStorage.setItem('dc_ateliers_list', JSON.stringify(list));
 
                   try {
-                    await fetch('http://localhost:5000/api/ateliers', {
+                    const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+                    await fetch(`${API_BASE}/ateliers`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify(newAtelierObj)

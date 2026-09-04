@@ -53,11 +53,12 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ atelierId 
         channel: selectedChannel
       });
 
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
       const [listRes, summaryRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/notifications?${params.toString()}`, {
+        fetch(`${API_BASE}/notifications?${params.toString()}`, {
           headers: { 'X-Atelier-Id': atelierId }
         }),
-        fetch(`http://localhost:5000/api/notifications/summary?atelierId=${atelierId}`, {
+        fetch(`${API_BASE}/notifications/summary?atelierId=${atelierId}`, {
           headers: { 'X-Atelier-Id': atelierId }
         })
       ]);
@@ -93,7 +94,8 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ atelierId 
       window.open(waUrl, '_blank');
 
       // Notifier le serveur de la réémission
-      await fetch('http://localhost:5000/api/notifications/resend', {
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      await fetch(`${API_BASE}/notifications/resend`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
