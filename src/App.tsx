@@ -21,6 +21,7 @@ import {
   demoMeasurements
 } from './demoMockData';
 
+import { getStepWhatsappMessage } from './utils/whatsappMessages';
 import { Sidebar } from './components/Sidebar';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { Dashboard } from './components/Dashboard';
@@ -360,24 +361,17 @@ export function App() {
       console.log('Mode offline : mise à jour du statut conservée en mémoire');
     }
 
-    // 3. Si le statut passe à 'livree', générer et envoyer automatiquement le Reçu de Livraison certifié sur WhatsApp
-    if (newStatus === 'livree') {
-      const receiptText = `🧾 *REÇU DE LIVRAISON OFFICIEL AUTOMATIQUE - MAISON DIGICOUTURE VIP*\n\n` +
-        `📍 *N° Commande :* ${targetOrder.code}\n` +
-        `👤 *Client VIP :* ${targetOrder.clientName}\n` +
-        `👗 *Modèle Confectionné :* ${targetOrder.modelName}\n` +
-        `🧵 *Tissu & Matière :* ${targetOrder.fabricName || 'Bazin Riche Luxe'}\n` +
-        `-----------------------------------\n` +
-        `💰 *Prix Total Confection :* ${targetOrder.totalAmount.toLocaleString()} FCFA\n` +
-        `💳 *Acompte Antérieur Versé :* ${targetOrder.depositAmount.toLocaleString()} FCFA\n` +
-        `✅ *Solde Réglé à la Livraison :* 0 FCFA (SOLDE ENTIÈREMENT RÉGLÉ)\n\n` +
-        `🔒 *Statut :* ARTICLE CERTIFIÉ CONFORME & REMIS EN MAINS PROPRES AU CLIENT\n` +
-        `✨ Merci infiniment pour votre confiance ! À très bientôt chez DigiCouture.`;
+    // 3. Envoi automatique du message WhatsApp personnalisé à CHAQUE étape du workflow de production
+    const messageText = getStepWhatsappMessage(
+      updatedOrder,
+      newStatus,
+      atelier.name || atelier.ownerName || 'Maison DigiCouture VIP',
+      atelier.address || 'Abidjan'
+    );
 
-      setTimeout(() => {
-        handleSendWhatsapp(targetOrder.clientWhatsapp, receiptText);
-      }, 300);
-    }
+    setTimeout(() => {
+      handleSendWhatsapp(targetOrder.clientWhatsapp, messageText);
+    }, 300);
   };
 
   const handleAddPayment = async (payData: Partial<Payment>) => {
