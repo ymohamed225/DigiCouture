@@ -577,7 +577,7 @@ export const OrderWizardModal: React.FC<OrderWizardModalProps> = ({
                   </label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
                     {[
-                      { key: 'Wave', name: 'Wave', imgUrl: '/src/assets/logo_wave.jpg' },
+                      { key: 'Wave', name: 'Wave', imgUrl: '/src/assets/logo_wave.png' },
                       { key: 'Orange Money', name: 'Orange Money', imgUrl: '/src/assets/logo_orange.png' },
                       { key: 'MTN Mobile Money', name: 'MTN MoMo', imgUrl: '/src/assets/logo_mtn.jpg' },
                       { key: 'Especes', name: 'Espèces (Cash)', icon: '💵' }

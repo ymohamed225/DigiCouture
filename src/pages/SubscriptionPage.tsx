@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Lock, ShieldCheck, RefreshCw, AlertTriangle } from 'lucide-react';
+import waveLogo from '../assets/logo_wave.png';
 
 interface Plan {
   code: string;
@@ -201,7 +202,8 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ atelierId, o
       {/* Titre des offres conforme à la maquette */}
       <div style={{ textAlign: 'center', marginTop: 32, marginBottom: 24 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, backgroundColor: '#EFF6FF', border: '1.5px solid #3B82F6', borderRadius: 20, padding: '6px 16px', color: '#1D4ED8', fontWeight: 800, fontSize: 13, marginBottom: 12 }}>
-          🌊 PAIEMENT UNIVERSEL EXCLUSIF WAVE MOBILE MONEY
+          <img src={waveLogo} alt="Wave Logo" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }} />
+          PAIEMENT UNIVERSEL EXCLUSIF WAVE MOBILE MONEY
         </div>
         <h2 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 32, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}>
           Des offres adaptées à la taille de votre atelier
@@ -301,7 +303,6 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ atelierId, o
                   </ul>
                 </div>
 
-                {/* Bouton Pilule conforme à la photo */}
                 <button
                   disabled={isCurrent || isProcessing}
                   onClick={() => handleCheckout(p)}
@@ -316,10 +317,21 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ atelierId, o
                     backgroundColor: isCurrent ? '#E2E8F0' : isRecommended ? '#D4AF37' : '#0F172A',
                     color: isCurrent ? '#64748B' : '#FFFFFF',
                     boxShadow: isRecommended ? '0 6px 18px rgba(212, 175, 55, 0.35)' : 'none',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8
                   }}
                 >
-                  {isCurrent ? '✓ Formule Actuelle' : btnText}
+                  {isCurrent ? (
+                    '✓ Formule Actuelle'
+                  ) : (
+                    <>
+                      <img src={waveLogo} alt="Wave" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
+                      <span>{btnText.replace(/^🌊\s*/, '')}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
