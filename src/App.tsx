@@ -163,6 +163,18 @@ export function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // ⌨️ Raccourci Clavier Global Haute Couture (Alt + N pour nouvelle commande instantanée)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        setIsOrderWizardOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // 🔄 Chargement et synchronisation réactive en temps réel (Polling 3s) des données de l'atelier connecté (Web ↔ Mobile)
   useEffect(() => {
     if (!atelier || !atelier.id || isDemoMode) return;
