@@ -1,26 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { AdminLayout } from './components/AdminLayout';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { AteliersPage } from './pages/AteliersPage';
-import { AtelierDetailPage } from './pages/AtelierDetailPage';
-import { AbonnementsPage } from './pages/AbonnementsPage';
-import { PlansPage } from './pages/PlansPage';
-import { PaiementsSaasPage } from './pages/PaiementsSaasPage';
-import { RevenusPage } from './pages/RevenusPage';
-import { UsagePage } from './pages/UsagePage';
-import { SupportPage } from './pages/SupportPage';
-import { CommunicationPage } from './pages/CommunicationPage';
-import { AlertesPage } from './pages/AlertesPage';
-import { AuditPage } from './pages/AuditPage';
-import { AnalyticsPage } from './pages/AnalyticsPage';
-import { IntegrationsPage } from './pages/IntegrationsPage';
-import { SecuritePage } from './pages/SecuritePage';
-import { ParametresPage } from './pages/ParametresPage';
 import { type AdminPage } from './components/AdminSidebar';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { PWAInstallBanner } from '../components/PWAInstallBanner';
 import { PWAInstallModal } from '../components/PWAInstallModal';
-import { Lock, Sparkles } from 'lucide-react';
+import { Lock, Sparkles, Loader2 } from 'lucide-react';
+
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const AteliersPage = lazy(() => import('./pages/AteliersPage').then(m => ({ default: m.AteliersPage })));
+const AtelierDetailPage = lazy(() => import('./pages/AtelierDetailPage').then(m => ({ default: m.AtelierDetailPage })));
+const AbonnementsPage = lazy(() => import('./pages/AbonnementsPage').then(m => ({ default: m.AbonnementsPage })));
+const PlansPage = lazy(() => import('./pages/PlansPage').then(m => ({ default: m.PlansPage })));
+const PaiementsSaasPage = lazy(() => import('./pages/PaiementsSaasPage').then(m => ({ default: m.PaiementsSaasPage })));
+const RevenusPage = lazy(() => import('./pages/RevenusPage').then(m => ({ default: m.RevenusPage })));
+const UsagePage = lazy(() => import('./pages/UsagePage').then(m => ({ default: m.UsagePage })));
+const SupportPage = lazy(() => import('./pages/SupportPage').then(m => ({ default: m.SupportPage })));
+const CommunicationPage = lazy(() => import('./pages/CommunicationPage').then(m => ({ default: m.CommunicationPage })));
+const AlertesPage = lazy(() => import('./pages/AlertesPage').then(m => ({ default: m.AlertesPage })));
+const AuditPage = lazy(() => import('./pages/AuditPage').then(m => ({ default: m.AuditPage })));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const IntegrationsPage = lazy(() => import('./pages/IntegrationsPage').then(m => ({ default: m.IntegrationsPage })));
+const SecuritePage = lazy(() => import('./pages/SecuritePage').then(m => ({ default: m.SecuritePage })));
+const ParametresPage = lazy(() => import('./pages/ParametresPage').then(m => ({ default: m.ParametresPage })));
 
 export function AdminApp() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -194,10 +195,15 @@ export function AdminApp() {
           setCurrentPage(page);
         }}
         onLogout={handleLogout}
-        adminName="Super Admin"
         onInstallClick={promptInstall}
       >
-        {renderPage()}
+        <Suspense fallback={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: 12, color: '#D4AF37', fontWeight: 700 }}>
+            <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} /> Chargement du module...
+          </div>
+        }>
+          {renderPage()}
+        </Suspense>
       </AdminLayout>
 
       <PWAInstallBanner
