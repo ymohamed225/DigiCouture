@@ -199,12 +199,15 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ atelierId, o
       )}
 
       {/* Titre des offres conforme à la maquette */}
-      <div style={{ textAlign: 'center', marginTop: 32, marginBottom: 36 }}>
+      <div style={{ textAlign: 'center', marginTop: 32, marginBottom: 24 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, backgroundColor: '#EFF6FF', border: '1.5px solid #3B82F6', borderRadius: 20, padding: '6px 16px', color: '#1D4ED8', fontWeight: 800, fontSize: 13, marginBottom: 12 }}>
+          🌊 PAIEMENT UNIVERSEL EXCLUSIF WAVE MOBILE MONEY
+        </div>
         <h2 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 32, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}>
           Des offres adaptées à la taille de votre atelier
         </h2>
         <p style={{ fontSize: 15, color: '#64748B', marginTop: 8, fontWeight: 500 }}>
-          Choisissez la formule qui correspond à votre rythme de commandes.
+          Abonnez-vous ou réabonnez-vous en 1 clic via <strong>Wave Direct</strong>. Votre compte est débloqué automatiquement en 2 secondes !
         </p>
       </div>
 
