@@ -63,22 +63,50 @@ app.get('/', (req, res) => {
 
 // Endpoint d'envoi compatible Open-WA / DigiCouture (http://localhost:8080/sendText)
 app.post('/sendText', async (req, res) => {
+  if (!isReady) {
+    console.warn('⚠️ [WhatsApp Gateway] Requête d\'envoi reçue mais le client WhatsApp Web n\'est pas prêt (QR code non scanné).');
+    return res.status(503).json({
+      success: false,
+      error: 'PASSERELLE_NON_PRETE',
+      message: 'La passerelle WhatsApp Web n\'est pas encore authentifiée. Scannez le QR Code dans la console ou vérifiez la page http://localhost:8080.'
+    });
+  }
+
   try {
     const { to, content, message } = req.body;
     const rawTo = (to || '').replace('@c.us', '').replace(/[^0-9]/g, '');
     const text = content || message;
 
     if (!rawTo || !text) {
-      return res.status(400).json({ error: 'Numéro destinataire ou message manquant' });
+      return res.status(400).json({ success: false, error: 'Numéro destinataire ou message manquant' });
     }
 
-    const cleanPhone = rawTo.startsWith('225') ? rawTo : `225${rawTo}`;
-    const chatId = `${cleanPhone}@c.us`;
+    // Normalisation du numéro pour la Côte d'Ivoire (10 chiffres: 0701020304 -> 2250701020304)
+    let cleanPhone = rawTo;
+    if (cleanPhone.length === 10 && (cleanPhone.startsWith('01') || cleanPhone.startsWith('05') || cleanPhone.startsWith('07'))) {
+      cleanPhone = `225${cleanPhone}`;
+    } else if (!cleanPhone.startsWith('225')) {
+      cleanPhone = `225${cleanPhone}`;
+    }
 
-    await client.sendMessage(chatId, text);
+    // Résolution exacte du JID enregistré sur WhatsApp avec getNumberId
+    let targetJid = `${cleanPhone}@c.us`;
+    try {
+      const numberId = await client.getNumberId(cleanPhone);
+      if (numberId && numberId._serialized) {
+        targetJid = numberId._serialized;
+        console.log(`📱 [WhatsApp Gateway] JID résolu avec succès : ${targetJid}`);
+      } else {
+        console.warn(`⚠️ [WhatsApp Gateway] Numéro non résolu par getNumberId (+${cleanPhone}). Tentative sur ${targetJid}...`);
+      }
+    } catch (jidErr) {
+      console.warn(`⚠️ [WhatsApp Gateway] Recherche JID échouée (+${cleanPhone}):`, jidErr.message);
+    }
+
+    await client.sendMessage(targetJid, text);
     
-    console.log(`✅ [WhatsApp Envoyé] Réf: +${cleanPhone} | Message: "${text.slice(0, 45)}..."`);
-    return res.json({ success: true, status: 'SENT' });
+    console.log(`✅ [WhatsApp Envoyé] Réf: ${targetJid} | Message: "${text.slice(0, 45)}..."`);
+    return res.json({ success: true, status: 'SENT', jid: targetJid });
   } catch (err) {
     console.error('❌ Erreur d\'envoi WhatsApp:', err.message);
     return res.status(500).json({ success: false, error: err.message });
