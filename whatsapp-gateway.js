@@ -23,12 +23,42 @@ client.on('qr', (qr) => {
   qrcode.generate(qr, { small: true });
 });
 
+let isReady = false;
+
 client.on('ready', () => {
+  isReady = true;
   console.log('\n✅ [PASSERELLE WHATSAPP DIGICOUTURE] Connectée et prête !');
 });
 
 client.on('auth_failure', (msg) => {
   console.error('❌ Échec d\'authentification WhatsApp:', msg);
+});
+
+// Page d'accueil visuelle de statut de la passerelle
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Passerelle WhatsApp DigiCouture</title>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: system-ui, sans-serif; background: #0F172A; color: #FFFFFF; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+          .card { background: #1E293B; border: 2px solid #D4AF37; padding: 2.5rem; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 450px; }
+          h1 { color: #D4AF37; margin-bottom: 0.5rem; font-size: 1.6rem; }
+          p { color: #94A3B8; font-size: 0.95rem; }
+          .status { display: inline-block; padding: 0.6rem 1.4rem; border-radius: 99px; background: ${isReady ? '#10B981' : '#F59E0B'}; color: #FFF; font-weight: bold; margin-top: 1.25rem; font-size: 0.9rem; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h1>👑 Passerelle WhatsApp DigiCouture</h1>
+          <p>Serveur API d'arrière-plan actif sur le port 8080</p>
+          <div class="status">${isReady ? '✅ Connectée et Prête' : '⏳ Initialisation en cours...'}</div>
+        </div>
+      </body>
+    </html>
+  `);
 });
 
 // Endpoint d'envoi compatible Open-WA / DigiCouture (http://localhost:8080/sendText)
