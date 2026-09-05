@@ -47,6 +47,8 @@ import { NotificationsPage } from './pages/NotificationsPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { PublicTrackingPage } from './pages/PublicTrackingPage';
 import { PublicCataloguePage } from './pages/PublicCataloguePage';
+import { LoginPage } from './pages/LoginPage';
+
 const TAB_TITLES: Record<string, { label: string; emoji: string }> = {
   dashboard: { label: 'Tableau de bord', emoji: '🏠' },
   clients: { label: 'Clients VIP', emoji: '👥' },
@@ -473,7 +475,7 @@ export function App() {
     return (
       <LoginPage 
         onBack={() => setCurrentTab('landing')}
-        onLoginWithPhone={async (phoneInput, otpInput) => {
+        onLoginWithPhone={async (phoneInput: string, otpInput: string) => {
           setIsDemoMode(false);
           const cleanPhone = phoneInput.replace(/[^0-9]/g, '');
           const last8 = cleanPhone.slice(-8);
