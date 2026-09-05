@@ -475,7 +475,7 @@ export function App() {
     return (
       <LoginPage 
         onBack={() => setCurrentTab('landing')}
-        onLoginWithPhone={async (phoneInput: string, otpInput: string) => {
+        onLoginWithPhone={async (phoneInput: string, otpInput?: string) => {
           setIsDemoMode(false);
           const cleanPhone = phoneInput.replace(/[^0-9]/g, '');
           const last8 = cleanPhone.slice(-8);
