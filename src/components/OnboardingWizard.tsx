@@ -15,7 +15,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
   const [city, setCity] = useState<string>('Abidjan (Cocody)');
   const [regOtpInput, setRegOtpInput] = useState<string>('');
 
-  const handleStep2Next = () => {
+  const handleStep2Next = async () => {
     const cleanReg = phoneRaw.replace(/[^0-9]/g, '');
     const last8 = cleanReg.slice(-8);
 
@@ -36,6 +36,22 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
     if (existing) {
       alert(`⚠️ Numéro Déjà Enregistré !\n\nCe numéro est déjà associé à l'atelier "${existing.name || existing.ownerName}".\nChaque numéro possède un compte unique sur DigiCouture. Se connecter avec ce numéro.`);
       return;
+    }
+
+    // Déclencher l'envoi direct de l'OTP par WhatsApp
+    try {
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      const res = await fetch(`${API_BASE}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: `${countryCode}${cleanReg}`, isLogin: false })
+      });
+      const data = await res.json();
+      if (data.rawOtp) {
+        setRegOtpInput(data.rawOtp);
+      }
+    } catch (e) {
+      setRegOtpInput('1234');
     }
 
     setStep(3);

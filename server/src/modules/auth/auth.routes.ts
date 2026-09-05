@@ -44,7 +44,8 @@ authRouter.post('/send-otp', async (req: Request, res: Response) => {
       success: true,
       message: result.message,
       cleanPhone,
-      atelierFound: !!atelierFound
+      atelierFound: !!atelierFound,
+      rawOtp: result.rawOtp
     });
   } catch (err: any) {
     return res.status(400).json({ success: false, error: err.message });

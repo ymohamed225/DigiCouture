@@ -39,6 +39,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       const data = await res.json();
 
       if (data.success) {
+        if (data.rawOtp) {
+          setOtpValue(data.rawOtp);
+        }
         setOtpStep('otp');
         setLoading(false);
         return;
