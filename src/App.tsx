@@ -725,7 +725,8 @@ export function App() {
             <div style={{
               backgroundColor: isDarkMode ? '#0F172A' : '#FFFFFF',
               borderBottom: isDarkMode ? '1.5px solid #1E293B' : '1.5px solid #EAE5DF',
-              padding: '0.75rem 1.5rem',
+              padding: isMobile ? '0.5rem 0.85rem' : '0.75rem 1.5rem',
+              height: isMobile ? '58px' : 'auto',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -735,9 +736,9 @@ export function App() {
               zIndex: 15,
               transition: 'background-color 0.3s ease, border-color 0.3s ease'
             }}>
-              {/* CÔTÉ GAUCHE : Logo (sur Mobile) ou Titre de Page & Badge Atelier (sur Desktop) */}
+              {/* CÔTÉ GAUCHE : Brand & Tab Name sur Mobile / Title & Badge Atelier sur Desktop */}
               {isMobile ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', overflow: 'hidden' }}>
                   <div style={{
                     width: '34px',
                     height: '34px',
@@ -747,16 +748,19 @@ export function App() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#FFFFFF',
-                    boxShadow: '0 2px 10px rgba(212, 175, 55, 0.3)'
+                    boxShadow: '0 2px 10px rgba(212, 175, 55, 0.3)',
+                    flexShrink: 0
                   }}>
                     <Scissors size={18} />
                   </div>
-                  <div>
-                    <span style={{ fontSize: '1.15rem', fontWeight: 900, color: isDarkMode ? '#F8FAFC' : '#0F172A', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
-                      Digi<span style={{ color: '#D4AF37' }}>Couture</span>
-                    </span>
-                    <span style={{ fontSize: '0.62rem', color: '#B8922E', display: 'block', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      💎 {(atelier.plan || 'pro').toUpperCase()}
+                  <div style={{ overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '1.05rem', fontWeight: 900, color: isDarkMode ? '#F8FAFC' : '#0F172A', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+                        Digi<span style={{ color: '#D4AF37' }}>Couture</span>
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '0.65rem', color: '#B8922E', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: '1px' }}>
+                      {TAB_TITLES[currentTab]?.emoji || '🏠'} {TAB_TITLES[currentTab]?.label || 'Accueil'}
                     </span>
                   </div>
                 </div>
@@ -799,7 +803,7 @@ export function App() {
               )}
 
               {/* CÔTÉ DROIT : Raccourcis Mode Sombre, Notifications, Déconnexion */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.45rem' : '0.75rem', flexShrink: 0 }}>
                 {/* 🌙 Bouton Rapide Mode Sombre / Clair TopBar */}
                 <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
@@ -807,16 +811,17 @@ export function App() {
                   style={{
                     backgroundColor: isDarkMode ? '#1E1B4B' : '#FFFDF5',
                     border: '1.5px solid #D4AF37',
-                    borderRadius: '14px',
-                    width: '40px',
-                    height: '40px',
+                    borderRadius: '12px',
+                    width: isMobile ? '36px' : '40px',
+                    height: isMobile ? '36px' : '40px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    fontSize: '1.1rem',
-                    boxShadow: '0 4px 12px rgba(212, 175, 55, 0.15)',
-                    transition: 'transform 0.15s ease'
+                    fontSize: isMobile ? '0.95rem' : '1.1rem',
+                    boxShadow: '0 2px 8px rgba(212, 175, 55, 0.15)',
+                    transition: 'transform 0.15s ease',
+                    flexShrink: 0
                   }}
                 >
                   {isDarkMode ? '☀️' : '🌙'}
@@ -839,18 +844,19 @@ export function App() {
                   style={{
                     backgroundColor: '#FFF5F5',
                     border: '1.5px solid #FF4D4D',
-                    borderRadius: '14px',
-                    height: '40px',
-                    padding: '0 0.85rem',
+                    borderRadius: '12px',
+                    height: isMobile ? '36px' : '40px',
+                    padding: isMobile ? '0 0.55rem' : '0 0.85rem',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.4rem',
+                    gap: '0.35rem',
                     cursor: 'pointer',
                     color: '#FF2E2E',
                     fontWeight: 800,
-                    fontSize: '0.82rem',
+                    fontSize: '0.8rem',
                     boxShadow: '0 2px 8px rgba(255, 77, 77, 0.15)',
-                    transition: 'all 0.15s ease'
+                    transition: 'all 0.15s ease',
+                    flexShrink: 0
                   }}
                 >
                   <LogOut size={16} color="#FF2E2E" />
