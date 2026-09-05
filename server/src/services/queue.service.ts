@@ -95,10 +95,12 @@ export class AsyncQueueService {
   }
 
   private static async handleWhatsAppJob(job: BackgroundJob): Promise<void> {
-    // Exécution du dispatching de notification WhatsApp sans bloquer l'API
-    const { notificationId, recipient, message } = job.payload;
-    // Simuler l'envoi vers l'API externe WhatsApp avec résilience complète
+    // Exécution du dispatching de notification WhatsApp via la passerelle API sans bloquer l'API
+    const { notificationId, recipient, message, atelierId } = job.payload;
     if (!recipient) throw new Error('Destinataire WhatsApp invalide');
+
+    const { WhatsappGatewayService } = await import('./whatsappGateway.service.js');
+    await WhatsappGatewayService.sendMessage({ recipient, message, atelierId });
   }
 
   private static async handlePdfJob(job: BackgroundJob): Promise<void> {

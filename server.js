@@ -462,6 +462,28 @@ app.post('/api/auth/send-otp', async (req, res) => {
       `Entrez ce code à 4 chiffres dans l'application pour ouvrir votre atelier.\n` +
       `⚠️ Ne partagez ce code avec personne. Valide 10 minutes.`;
 
+    // Envoi via la passerelle API WhatsApp externe si les clés sont configurées dans .env
+    if (process.env.WHATSAPP_API_URL || process.env.WHATSAPP_API_TOKEN || process.env.WHATSAPP_INSTANCE_ID) {
+      const cleanPhoneWithCC = cleanPhone.startsWith('225') ? cleanPhone : `225${cleanPhone}`;
+      const apiUrl = process.env.WHATSAPP_API_URL || 'https://api.ultramsg.com';
+      const apiToken = process.env.WHATSAPP_API_TOKEN || '';
+      const instanceId = process.env.WHATSAPP_INSTANCE_ID || '';
+
+      fetch(`${apiUrl}/${instanceId}/messages/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          token: apiToken,
+          to: `+${cleanPhoneWithCC}`,
+          body: whatsappMessage
+        })
+      }).then(() => {
+        console.log(`✅ [Passerelle WhatsApp Directe] Code OTP ${generatedOtp} expédié à +${cleanPhoneWithCC}`);
+      }).catch(err => {
+        console.error(`❌ [Passerelle WhatsApp Directe] Erreur :`, err.message);
+      });
+    }
+
     return res.json({
       success: true,
       otp: generatedOtp,
