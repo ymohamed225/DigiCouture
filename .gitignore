@@ -25,3 +25,10 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+_IGNORE_session/
+.wwebjs_auth/
+.wwebjs_cache/
+.node-persist/
+*.sw_col.json
+
+
