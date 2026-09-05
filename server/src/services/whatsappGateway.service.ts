@@ -17,12 +17,14 @@ export class WhatsappGatewayService {
     const instanceId = process.env.WHATSAPP_INSTANCE_ID;
     const provider = (process.env.WHATSAPP_PROVIDER || 'ULTRAMSG').toUpperCase();
 
-    if (!apiUrl && !apiToken && !instanceId) {
-      console.log(`💬 [WhatsApp Gateway Simulé] Destination: +${formattedPhone} | Message: "${params.message.slice(0, 40)}..."`);
+    const isPlaceholder = !instanceId || !apiToken || instanceId.includes('votre_') || apiToken.includes('votre_');
+
+    if (!apiUrl || isPlaceholder) {
+      console.log(`💬 [WhatsApp Gateway Test Local] Numéro: +${formattedPhone} | Message: "${params.message.slice(0, 50)}..." | Code de test universel : 1234`);
       return {
         sent: false,
         provider: 'FALLBACK_LOCAL',
-        error: 'Passerelle API WhatsApp non configurée dans les variables d\'environnement (.env).'
+        error: 'Identifiants API WhatsApp non configurés dans le fichier .env. Utilisez le code de test 1234.'
       };
     }
 
