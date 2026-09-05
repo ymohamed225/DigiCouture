@@ -47,7 +47,23 @@ import { NotificationsPage } from './pages/NotificationsPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { PublicTrackingPage } from './pages/PublicTrackingPage';
 import { PublicCataloguePage } from './pages/PublicCataloguePage';
-import { LoginPage } from './pages/LoginPage';
+const TAB_TITLES: Record<string, { label: string; emoji: string }> = {
+  dashboard: { label: 'Tableau de bord', emoji: '🏠' },
+  clients: { label: 'Clients VIP', emoji: '👥' },
+  measurements: { label: 'Mensurations', emoji: '📏' },
+  orders: { label: 'Commandes', emoji: '📋' },
+  calendar: { label: 'Calendrier & RDV', emoji: '📅' },
+  notifications: { label: 'Notifications', emoji: '🔔' },
+  messages: { label: 'Messages WhatsApp', emoji: '💬' },
+  production: { label: 'Suivi Production', emoji: '✂️' },
+  payments: { label: 'Paiements & Caisse', emoji: '💳' },
+  catalogue: { label: 'Catalogue Modèles', emoji: '👗' },
+  subscription: { label: 'Mon Abonnement', emoji: '💎' },
+  atelier: { label: 'Mon Atelier & Vitrine', emoji: '🏛️' },
+  reports: { label: 'Rapports Financiers', emoji: '📊' },
+  settings: { label: 'Paramètres & Configuration', emoji: '⚙️' },
+  portal: { label: 'Portail Client', emoji: '✨' }
+};
 
 export function App() {
   // ROUTE PUBLIQUE 1 : SUIVI CLIENT SELECTIONNÉ (/tracking/:code/:token)
@@ -702,56 +718,101 @@ export function App() {
           minHeight: '100vh',
           overflowX: 'hidden'
         }}>
-          {/* Header Bar avec Centre de Notification Web & Logo / Déconnexion Mobile */}
+          {/* Header Bar Haute Couture Harmonisé Web & Mobile */}
           {currentTab !== 'superadmin' && currentTab !== 'landing' && currentTab !== 'onboarding' && (
             <div style={{
-              backgroundColor: '#FFFFFF',
-              borderBottom: '1.5px solid #EAE5DF',
-              padding: '0.65rem 1.25rem',
+              backgroundColor: isDarkMode ? '#0F172A' : '#FFFFFF',
+              borderBottom: isDarkMode ? '1.5px solid #1E293B' : '1.5px solid #EAE5DF',
+              padding: '0.75rem 1.5rem',
               display: 'flex',
-              justifyContent: isMobile ? 'space-between' : 'flex-end',
+              justifyContent: 'space-between',
               alignItems: 'center',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
+              boxShadow: isDarkMode ? '0 4px 20px rgba(0,0,0,0.4)' : '0 2px 12px rgba(0,0,0,0.03)',
               position: 'sticky',
               top: 0,
-              zIndex: 15
+              zIndex: 15,
+              transition: 'background-color 0.3s ease, border-color 0.3s ease'
             }}>
-              {isMobile && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {/* CÔTÉ GAUCHE : Logo (sur Mobile) ou Titre de Page & Badge Atelier (sur Desktop) */}
+              {isMobile ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
                   <div style={{
-                    width: '32px',
-                    height: '32px',
+                    width: '34px',
+                    height: '34px',
                     borderRadius: '10px',
                     background: 'linear-gradient(135deg, #D4AF37 0%, #B8922E 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#FFFFFF'
+                    color: '#FFFFFF',
+                    boxShadow: '0 2px 10px rgba(212, 175, 55, 0.3)'
                   }}>
-                    <Scissors size={16} />
+                    <Scissors size={18} />
                   </div>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0F172A', fontFamily: 'var(--font-serif)' }}>
-                    Digi<span style={{ color: '#D4AF37' }}>Couture</span>
-                  </span>
+                  <div>
+                    <span style={{ fontSize: '1.15rem', fontWeight: 900, color: isDarkMode ? '#F8FAFC' : '#0F172A', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+                      Digi<span style={{ color: '#D4AF37' }}>Couture</span>
+                    </span>
+                    <span style={{ fontSize: '0.62rem', color: '#B8922E', display: 'block', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      💎 {(atelier.plan || 'pro').toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{ fontSize: '1.4rem' }}>
+                      {TAB_TITLES[currentTab]?.emoji || '🏠'}
+                    </span>
+                    <h2 style={{ 
+                      fontSize: '1.2rem', 
+                      fontWeight: 800, 
+                      color: isDarkMode ? '#F8FAFC' : '#0F172A', 
+                      margin: 0, 
+                      fontFamily: 'var(--font-serif)',
+                      letterSpacing: '-0.01em'
+                    }}>
+                      {TAB_TITLES[currentTab]?.label || 'Tableau de bord'}
+                    </h2>
+                  </div>
+
+                  {/* Badge atelier & formule connecté */}
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.5rem', 
+                    padding: '0.3rem 0.75rem', 
+                    backgroundColor: isDarkMode ? '#1E293B' : '#FFFDF5', 
+                    border: '1px solid #D4AF37', 
+                    borderRadius: '20px' 
+                  }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: isDarkMode ? '#F1F5F9' : '#0F172A' }}>
+                      🏛️ {atelier.name}
+                    </span>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 900, backgroundColor: '#D4AF37', color: '#FFFFFF', padding: '0.1rem 0.45rem', borderRadius: '10px' }}>
+                      {(atelier.plan || 'pro').toUpperCase()}
+                    </span>
+                  </div>
                 </div>
               )}
 
+              {/* CÔTÉ DROIT : Raccourcis Mode Sombre, Notifications, Déconnexion */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 {/* 🌙 Bouton Rapide Mode Sombre / Clair TopBar */}
                 <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
-                  title={isDarkMode ? 'Passer au Mode Clair' : 'Passer au Mode Sombre (Actif pour tous)'}
+                  title={isDarkMode ? 'Passer au Mode Clair' : 'Passer au Mode Sombre'}
                   style={{
                     backgroundColor: isDarkMode ? '#1E1B4B' : '#FFFDF5',
                     border: '1.5px solid #D4AF37',
                     borderRadius: '14px',
-                    width: '38px',
-                    height: '38px',
+                    width: '40px',
+                    height: '40px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    fontSize: '1rem',
+                    fontSize: '1.1rem',
                     boxShadow: '0 4px 12px rgba(212, 175, 55, 0.15)',
                     transition: 'transform 0.15s ease'
                   }}
@@ -769,31 +830,30 @@ export function App() {
                   onNavigateTab={setCurrentTab}
                 />
 
-                {/* 🚪 Bouton Déconnexion Rapide Mobile Header */}
-                {isMobile && (
-                  <button
-                    onClick={handleLogout}
-                    title="Déconnexion"
-                    style={{
-                      backgroundColor: '#FFF5F5',
-                      border: '1.5px solid #FF4D4D',
-                      borderRadius: '12px',
-                      height: '38px',
-                      padding: '0 0.65rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      cursor: 'pointer',
-                      color: '#FF2E2E',
-                      fontWeight: 900,
-                      fontSize: '0.8rem',
-                      boxShadow: '0 2px 8px rgba(255, 77, 77, 0.15)'
-                    }}
-                  >
-                    <LogOut size={16} color="#FF2E2E" />
-                    <span>Sortir</span>
-                  </button>
-                )}
+                {/* 🚪 Bouton Déconnexion Rapide */}
+                <button
+                  onClick={handleLogout}
+                  title="Se déconnecter de DigiCouture"
+                  style={{
+                    backgroundColor: '#FFF5F5',
+                    border: '1.5px solid #FF4D4D',
+                    borderRadius: '14px',
+                    height: '40px',
+                    padding: '0 0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    cursor: 'pointer',
+                    color: '#FF2E2E',
+                    fontWeight: 800,
+                    fontSize: '0.82rem',
+                    boxShadow: '0 2px 8px rgba(255, 77, 77, 0.15)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <LogOut size={16} color="#FF2E2E" />
+                  <span>{isMobile ? 'Sortir' : 'Déconnexion'}</span>
+                </button>
               </div>
             </div>
           )}
