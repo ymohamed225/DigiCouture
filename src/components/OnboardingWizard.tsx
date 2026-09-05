@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { AtelierProfile } from '../types';
 import { ArrowRight, Scissors, ArrowLeft, CheckCircle } from 'lucide-react';
+import { getApiBaseUrl } from '../services/api/client';
 
 interface OnboardingWizardProps {
   onComplete: (atelierData: Partial<AtelierProfile>) => void;
@@ -316,7 +317,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
 
                   // Déclenchement / Vérification de l'OTP WhatsApp
                   try {
-                    const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+                    const API_BASE = getApiBaseUrl();
                     const res = await fetch(`${API_BASE}/auth/send-otp`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
@@ -352,7 +353,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
                   localStorage.setItem('dc_ateliers_list', JSON.stringify(list));
 
                   try {
-                    const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+                    const API_BASE = getApiBaseUrl();
                     await fetch(`${API_BASE}/ateliers`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },

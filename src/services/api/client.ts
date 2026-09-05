@@ -1,5 +1,14 @@
 // Client HTTP centralisé avec gestion des en-têtes Multi-Tenant, JWT et Idempotence
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/$/, '');
+export function getApiBaseUrl(): string {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/$/, '');
+  }
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
+  return `${protocol}//${hostname}:5000/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface ApiRequestOptions extends RequestInit {
   idempotencyKey?: string;

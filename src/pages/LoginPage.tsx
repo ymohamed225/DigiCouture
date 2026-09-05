@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { WEST_AFRICAN_COUNTRIES } from '../components/LandingPage';
 import { Scissors, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { getApiBaseUrl } from '../services/api/client';
 
 interface LoginPageProps {
   onBack: () => void;
@@ -36,7 +37,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     const fullPhone = `${countryCode}${phoneInput.replace(/[^0-9]/g, '')}`;
 
     try {
-      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      const API_BASE = getApiBaseUrl();
       const res = await fetch(`${API_BASE}/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,9 +69,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
     setLoading(true);
     const fullPhone = `${countryCode}${clean}`;
+    const API_BASE = getApiBaseUrl();
+
+    // Recherche locale
+    const savedAteliersJson = localStorage.getItem('dc_ateliers_list');
+    const ateliersList: any[] = savedAteliersJson ? JSON.parse(savedAteliersJson) : [];
+    const last8 = clean.slice(-8);
+
+    const existingLocally = ateliersList.find(a => {
+      const pClean = (a.phone || a.whatsapp || '').replace(/[^0-9]/g, '');
+      return pClean.includes(last8) || (last8.length >= 6 && pClean.endsWith(last8));
+    });
+
+    if (existingLocally) {
+      try {
+        await fetch(`${API_BASE}/ateliers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(existingLocally)
+        });
+      } catch (e) {}
+    }
 
     try {
-      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
       const res = await fetch(`${API_BASE}/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,7 +109,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       }
 
       if (data.notRegistered || !data.success) {
-        alert(`❌ ACCÈS REFUSÉ !\n\nCe numéro ne possède aucun compte DigiCouture.\n\nVeuillez contacter l'administrateur de votre atelier.`);
+        if (existingLocally) {
+          setOtpStep('otp');
+          setLoading(false);
+          return;
+        }
+        alert(`❌ ACCÈS REFUSÉ !\n\nCe numéro ne possède aucun compte DigiCouture.\n\nVeuillez vous inscrire d'abord !`);
         setLoading(false);
         return;
       }
@@ -96,20 +122,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       console.log('Mode fallback connexion offline');
     }
 
-    // Local fallback check
-    const savedAteliersJson = localStorage.getItem('dc_ateliers_list');
-    const ateliersList: any[] = savedAteliersJson ? JSON.parse(savedAteliersJson) : [];
-    const last8 = clean.slice(-8);
-
-    const existingLocally = ateliersList.find(a => {
-      const pClean = (a.phone || a.whatsapp || '').replace(/[^0-9]/g, '');
-      return pClean.includes(last8) || (last8.length >= 6 && pClean.endsWith(last8));
-    });
-
     if (existingLocally) {
       setOtpStep('otp');
     } else {
-      alert(`❌ ACCÈS REFUSÉ !\n\nCe numéro ne possède aucun compte DigiCouture.\n\nVeuillez contacter l'administrateur de votre atelier.`);
+      alert(`❌ ACCÈS REFUSÉ !\n\nCe numéro ne possède aucun compte DigiCouture.\n\nVeuillez vous inscrire d'abord !`);
     }
     setLoading(false);
   };
