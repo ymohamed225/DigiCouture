@@ -6,15 +6,17 @@ import {
   Bell, 
   CreditCard, 
   Save,
-  Check
+  Check,
+  LogOut
 } from 'lucide-react';
 
 interface SettingsViewProps {
   atelier: AtelierProfile;
   onSaveAtelier: (updated: AtelierProfile) => void;
+  onLogout?: () => void;
 }
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ atelier, onSaveAtelier }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({ atelier, onSaveAtelier, onLogout }) => {
   const [formData, setFormData] = useState<AtelierProfile>(atelier);
   const [activeTab, setActiveTab] = useState<'profil' | 'saas' | 'abonnement' | 'notifications' | 'paiements' | 'equipe'>('profil');
   const [isSaved, setIsSaved] = useState(false);
@@ -45,11 +47,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ atelier, onSaveAteli
           </p>
         </div>
 
-        {isSaved && (
-          <span className="badge badge-success" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-            <Check size={16} /> Modifications enregistrées avec succès !
-          </span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {isSaved && (
+            <span className="badge badge-success" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+              <Check size={16} /> Modifications enregistrées avec succès !
+            </span>
+          )}
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.6rem 1.1rem',
+                borderRadius: '12px',
+                backgroundColor: '#FFF5F5',
+                border: '1.5px solid #FF4D4D',
+                color: '#FF2E2E',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(255, 77, 77, 0.15)'
+              }}
+            >
+              <LogOut size={16} />
+              <span>Se déconnecter</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Navigation Onglets Paramètres SaaS */}

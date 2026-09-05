@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Scissors, LogOut } from 'lucide-react';
 import type { 
   Client, 
   Measurements, 
@@ -661,6 +662,17 @@ export function App() {
     );
   }
 
+  const handleLogout = async () => {
+    try {
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
+    } catch (e) {}
+    localStorage.removeItem('dc_atelier');
+    localStorage.removeItem('dc_refresh_token');
+    setIsDemoMode(false);
+    setCurrentTab('landing');
+  };
+
   return (
     <div className="app-container">
       <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -676,15 +688,7 @@ export function App() {
               setIsDemoMode(true);
               setCurrentTab('dashboard');
             }}
-            onLogout={async () => {
-              try {
-                await fetch('/api/auth/logout', { method: 'POST' });
-              } catch (e) {}
-              localStorage.removeItem('dc_atelier');
-              localStorage.removeItem('dc_refresh_token');
-              setIsDemoMode(false);
-              setCurrentTab('landing');
-            }}
+            onLogout={handleLogout}
             isDarkMode={isDarkMode}
             onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
           />
@@ -698,22 +702,42 @@ export function App() {
           minHeight: '100vh',
           overflowX: 'hidden'
         }}>
-          {/* Header Bar avec Centre de Notification Web (Épurée sans répétition de nom atelier) */}
+          {/* Header Bar avec Centre de Notification Web & Logo / Déconnexion Mobile */}
           {currentTab !== 'superadmin' && currentTab !== 'landing' && currentTab !== 'onboarding' && (
             <div style={{
               backgroundColor: '#FFFFFF',
               borderBottom: '1.5px solid #EAE5DF',
-              padding: '0.65rem 1.5rem',
+              padding: '0.65rem 1.25rem',
               display: 'flex',
-              justifyContent: 'flex-end',
+              justifyContent: isMobile ? 'space-between' : 'flex-end',
               alignItems: 'center',
               boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
               position: 'sticky',
               top: 0,
               zIndex: 15
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                {/* 🌙 Bouton Rapide Mode Sombre / Clair TopBar (Actif pour Tous les Abonnés) */}
+              {isMobile && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #D4AF37 0%, #B8922E 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFFFFF'
+                  }}>
+                    <Scissors size={16} />
+                  </div>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0F172A', fontFamily: 'var(--font-serif)' }}>
+                    Digi<span style={{ color: '#D4AF37' }}>Couture</span>
+                  </span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                {/* 🌙 Bouton Rapide Mode Sombre / Clair TopBar */}
                 <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   title={isDarkMode ? 'Passer au Mode Clair' : 'Passer au Mode Sombre (Actif pour tous)'}
@@ -721,13 +745,13 @@ export function App() {
                     backgroundColor: isDarkMode ? '#1E1B4B' : '#FFFDF5',
                     border: '1.5px solid #D4AF37',
                     borderRadius: '14px',
-                    width: '42px',
-                    height: '42px',
+                    width: '38px',
+                    height: '38px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    fontSize: '1.1rem',
+                    fontSize: '1rem',
                     boxShadow: '0 4px 12px rgba(212, 175, 55, 0.15)',
                     transition: 'transform 0.15s ease'
                   }}
@@ -744,6 +768,32 @@ export function App() {
                   }}
                   onNavigateTab={setCurrentTab}
                 />
+
+                {/* 🚪 Bouton Déconnexion Rapide Mobile Header */}
+                {isMobile && (
+                  <button
+                    onClick={handleLogout}
+                    title="Déconnexion"
+                    style={{
+                      backgroundColor: '#FFF5F5',
+                      border: '1.5px solid #FF4D4D',
+                      borderRadius: '12px',
+                      height: '38px',
+                      padding: '0 0.65rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      cursor: 'pointer',
+                      color: '#FF2E2E',
+                      fontWeight: 900,
+                      fontSize: '0.8rem',
+                      boxShadow: '0 2px 8px rgba(255, 77, 77, 0.15)'
+                    }}
+                  >
+                    <LogOut size={16} color="#FF2E2E" />
+                    <span>Sortir</span>
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -972,6 +1022,7 @@ export function App() {
             <SettingsView 
               atelier={atelier}
               onSaveAtelier={(updatedAtelier) => setAtelier(updatedAtelier)}
+              onLogout={handleLogout}
             />
           )}
         </main>
