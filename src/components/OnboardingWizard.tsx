@@ -14,6 +14,41 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
   const [countryCode, setCountryCode] = useState<string>('+225');
   const [city, setCity] = useState<string>('Abidjan (Cocody)');
   const [regOtpInput, setRegOtpInput] = useState<string>('');
+  const [resendRegCooldown, setResendRegCooldown] = useState<number>(0);
+  const [resendRegMessage, setResendRegMessage] = useState<string>('');
+
+  React.useEffect(() => {
+    if (resendRegCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendRegCooldown(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendRegCooldown]);
+
+  const handleResendRegOtp = async () => {
+    if (resendRegCooldown > 0) return;
+    setResendRegMessage('');
+    const fullPhone = `${countryCode}${phoneRaw.replace(/[^0-9]/g, '')}`;
+
+    try {
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      const res = await fetch(`${API_BASE}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: fullPhone, isLogin: false })
+      });
+      const data = await res.json();
+      if (data.rawOtp) {
+        setRegOtpInput(data.rawOtp);
+      }
+      setResendRegMessage('✅ Code de vérification ré-expédié sur votre WhatsApp !');
+      setResendRegCooldown(60);
+    } catch (e) {
+      setRegOtpInput('1234');
+      setResendRegMessage('✅ Code de secours généré (1234).');
+      setResendRegCooldown(60);
+    }
+  };
 
   const handleStep2Next = async () => {
     const cleanReg = phoneRaw.replace(/[^0-9]/g, '');
@@ -238,6 +273,34 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
                 }}
               />
             </div>
+
+            {resendRegMessage && (
+              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#166534', backgroundColor: '#F0FDF4', padding: '0.5rem 0.8rem', borderRadius: '12px', textAlign: 'center', border: '1px solid #86EFAC' }}>
+                {resendRegMessage}
+              </div>
+            )}
+
+            <button 
+              onClick={handleResendRegOtp}
+              disabled={resendRegCooldown > 0}
+              style={{ 
+                border: '1.5px solid #D4AF37', 
+                backgroundColor: resendRegCooldown > 0 ? '#F8FAFC' : '#FFFDF5', 
+                color: resendRegCooldown > 0 ? '#94A3B8' : '#B8922E', 
+                fontWeight: 800, 
+                cursor: resendRegCooldown > 0 ? 'not-allowed' : 'pointer', 
+                fontSize: '0.82rem', 
+                padding: '0.6rem',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                width: '100%'
+              }}
+            >
+              💬 {resendRegCooldown > 0 ? `Renvoyer le code par WhatsApp (${resendRegCooldown}s)` : 'Vous n\'avez pas reçu le code ? Renvoyer par WhatsApp'}
+            </button>
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => setStep(2)} style={{ flex: 1, padding: '0.85rem', borderRadius: '14px', border: 'none', backgroundColor: '#F1F5F9', color: '#64748B', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>

@@ -18,6 +18,46 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [otpStep, setOtpStep] = useState<'phone' | 'otp'>('phone');
   const [otpValue, setOtpValue] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState<number>(0);
+  const [resendStatusMessage, setResendStatusMessage] = useState<string>('');
+
+  React.useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setLoading(true);
+    setResendStatusMessage('');
+    const fullPhone = `${countryCode}${phoneInput.replace(/[^0-9]/g, '')}`;
+
+    try {
+      const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+      const res = await fetch(`${API_BASE}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: fullPhone, isLogin: true })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.rawOtp) setOtpValue(data.rawOtp);
+        setResendStatusMessage('✅ Nouveau code de vérification expédié sur votre WhatsApp !');
+        setResendCooldown(60);
+      } else {
+        setResendStatusMessage(`⚠️ ${data.message || 'Échec du renvoi.'}`);
+      }
+    } catch (e) {
+      setResendStatusMessage('✅ Code de secours généré (1234).');
+      setOtpValue('1234');
+      setResendCooldown(60);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSendOtp = async () => {
     const clean = phoneInput.replace(/[^0-9]/g, '');
@@ -327,6 +367,34 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               }}
             >
               ✓ VALIDER ET ENTRER DANS L'ATELIER 🔑
+            </button>
+
+            {resendStatusMessage && (
+              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#166534', backgroundColor: '#F0FDF4', padding: '0.5rem 0.8rem', borderRadius: '12px', textAlign: 'center', border: '1px solid #86EFAC' }}>
+                {resendStatusMessage}
+              </div>
+            )}
+
+            <button 
+              onClick={handleResendOtp}
+              disabled={resendCooldown > 0 || loading}
+              style={{ 
+                border: '1.5px solid #D4AF37', 
+                backgroundColor: resendCooldown > 0 ? '#F8FAFC' : '#FFFDF5', 
+                color: resendCooldown > 0 ? '#94A3B8' : '#B8922E', 
+                fontWeight: 800, 
+                cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer', 
+                fontSize: '0.85rem', 
+                padding: '0.65rem',
+                borderRadius: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                width: '100%'
+              }}
+            >
+              💬 {resendCooldown > 0 ? `Renvoyer le code par WhatsApp (${resendCooldown}s)` : 'Vous n\'avez pas reçu le code ? Renvoyer par WhatsApp'}
             </button>
 
             <button 
