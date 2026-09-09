@@ -274,15 +274,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               {/* Google Play / Android APK Button */}
               <a
-                href={import.meta.env.VITE_MOBILE_APK_URL || "#download-android"}
+                href={import.meta.env.VITE_MOBILE_APK_URL || "https://expo.dev/accounts/ymohamed/projects/mobile_app/builds/c1e07bd9-f93a-4d23-a3c6-8cb526f8c613"}
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={(e) => {
-                  const apkUrl = import.meta.env.VITE_MOBILE_APK_URL;
-                  if (apkUrl) {
-                    window.open(apkUrl, '_blank');
-                  } else {
-                    e.preventDefault();
-                    alert("📲 Téléchargement de l'application Android (APK) :\n\nL'application Android DigiCouture VIP est prête pour la compilation Expo EAS ('eas build --platform android').\n\nDès que la commande est exécutée dans votre terminal, collez l'URL générée dans VITE_MOBILE_APK_URL sur Vercel pour rendre le téléchargement direct actif !");
-                  }
+                  const apkUrl = import.meta.env.VITE_MOBILE_APK_URL || "https://expo.dev/accounts/ymohamed/projects/mobile_app/builds/c1e07bd9-f93a-4d23-a3c6-8cb526f8c613";
+                  window.open(apkUrl, '_blank');
                 }}
                 style={{
                   display: 'flex',
