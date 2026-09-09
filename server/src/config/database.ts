@@ -1,12 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 import mysql from 'mysql2/promise';
+import pg from 'pg';
 import { ENV } from './env.js';
 
 export const prisma = new PrismaClient();
-export let pool: mysql.Pool | null = null;
+export let pool: any = null;
 export let isMySqlConnected = false;
+export let isPostgres = false;
+
 export async function withTransaction<T>(
-  callback: (connection: mysql.PoolConnection) => Promise<T>
+  callback: (connection: any) => Promise<T>
 ): Promise<T> {
   if (!pool) {
     throw new Error('DATABASE_UNAVAILABLE');
@@ -27,6 +30,61 @@ export async function withTransaction<T>(
 }
 
 export async function initDatabase() {
+  const dbUrl = process.env.DATABASE_URL || '';
+  if (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://')) {
+    isPostgres = true;
+    try {
+      const pgPool = new pg.Pool({
+        connectionString: dbUrl,
+        ssl: dbUrl.includes('render.com') || dbUrl.includes('sslmode=require') || !dbUrl.includes('localhost')
+          ? { rejectUnauthorized: false }
+          : false
+      });
+
+      const client = await pgPool.connect();
+      client.release();
+      isMySqlConnected = true;
+      console.log('✅ [Prisma ORM & PostgreSQL] Connecté avec succès à la Base de Données PostgreSQL Render !');
+
+      pool = {
+        query: async (sql: string, params: any[] = []) => {
+          let paramIdx = 1;
+          let convertedSql = sql.replace(/\?/g, () => `$${paramIdx++}`);
+          convertedSql = convertedSql.replace(/REPLACE\(([^,]+),\s*" ", ""\)/gi, "REPLACE($1, ' ', '')");
+          convertedSql = convertedSql.replace(/ON DUPLICATE KEY UPDATE/gi, "ON CONFLICT DO NOTHING");
+          convertedSql = convertedSql.replace(/ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/gi, ";");
+          convertedSql = convertedSql.replace(/TINYINT\(1\)/gi, "BOOLEAN");
+
+          const result = await pgPool.query(convertedSql, params);
+          return [result.rows, result.fields];
+        },
+        getConnection: async () => {
+          const client = await pgPool.connect();
+          return {
+            query: async (sql: string, params: any[] = []) => {
+              let paramIdx = 1;
+              let convertedSql = sql.replace(/\?/g, () => `$${paramIdx++}`);
+              convertedSql = convertedSql.replace(/REPLACE\(([^,]+),\s*" ", ""\)/gi, "REPLACE($1, ' ', '')");
+              convertedSql = convertedSql.replace(/ON DUPLICATE KEY UPDATE/gi, "ON CONFLICT DO NOTHING");
+              convertedSql = convertedSql.replace(/ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/gi, ";");
+              convertedSql = convertedSql.replace(/TINYINT\(1\)/gi, "BOOLEAN");
+
+              const result = await client.query(convertedSql, params);
+              return [result.rows, result.fields];
+            },
+            release: () => client.release(),
+            beginTransaction: async () => client.query('BEGIN'),
+            commit: async () => client.query('COMMIT'),
+            rollback: async () => client.query('ROLLBACK')
+          };
+        }
+      };
+      return;
+    } catch (pgErr: any) {
+      console.error('❌ [PostgreSQL] Connexion PostgreSQL échouée :', pgErr.message);
+    }
+  }
+
   try {
     pool = mysql.createPool({
       host: ENV.DB_HOST,
