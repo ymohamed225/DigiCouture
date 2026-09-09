@@ -108,6 +108,15 @@ app.use((req, res, next) => {
 });
 
 // ── Health Checks (AVANT requireDatabase — doit répondre même si la BDD est down)
+app.get('/', (_req, res) => {
+  res.json({
+    status: 'ONLINE',
+    service: 'DigiCouture VIP Backend API',
+    version: '2.0.0',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.use('/health', healthRouter);
 // Rétrocompatibilité : /api/health redirige vers /health
 app.use('/api/health', healthRouter);
