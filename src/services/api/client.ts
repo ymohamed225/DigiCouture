@@ -5,6 +5,11 @@ export function getApiBaseUrl(): string {
   }
   const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
   const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
+
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('192.168.')) {
+    return 'https://digicouture-backend.onrender.com/api';
+  }
+
   return `${protocol}//${hostname}:5000/api`;
 }
 
