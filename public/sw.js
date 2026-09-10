@@ -10,7 +10,7 @@ const STATIC_ASSETS = [
 ];
 
 // Installation du Service Worker et mise en cache initiale
-self.addEventListener('install', (event: any) => {
+self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS);
@@ -20,7 +20,7 @@ self.addEventListener('install', (event: any) => {
 });
 
 // Activation et nettoyage des anciens caches
-self.addEventListener('activate', (event: any) => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
@@ -32,7 +32,7 @@ self.addEventListener('activate', (event: any) => {
 });
 
 // Stratégie Network First avec Fallback Cache pour la PWA
-self.addEventListener('fetch', (event: any) => {
+self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 

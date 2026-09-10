@@ -50,9 +50,14 @@ export async function initDatabase() {
         let paramIdx = 1;
         let converted = sql.replace(/\?/g, () => `$${paramIdx++}`);
         converted = converted.replace(/REPLACE\(([^,]+),\s*" ", ""\)/gi, "REPLACE($1, ' ', '')");
-        converted = converted.replace(/ON DUPLICATE KEY UPDATE/gi, "ON CONFLICT DO NOTHING");
+        converted = converted.replace(/ON DUPLICATE KEY UPDATE[^\n;]+/gi, "ON CONFLICT DO NOTHING");
         converted = converted.replace(/ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/gi, ";");
+        converted = converted.replace(/ENGINE=InnoDB;/gi, ";");
         converted = converted.replace(/TINYINT\(1\)/gi, "BOOLEAN");
+        converted = converted.replace(/ENUM\([^)]+\)/gi, "VARCHAR(50)");
+        converted = converted.replace(/,\s*INDEX\s+[a-zA-Z0-9_]+\s*\([^)]+\)/gi, "");
+        converted = converted.replace(/,\s*KEY\s+[a-zA-Z0-9_]+\s*\([^)]+\)/gi, "");
+        converted = converted.replace(/,\s*UNIQUE KEY\s+([a-zA-Z0-9_]+)\s*\(([^)]+)\)/gi, ", CONSTRAINT $1 UNIQUE ($2)");
         converted = converted.replace(/\bSUBSTRING\(([^,]+),\s*(\d+),\s*(\d+)\)/gi, "SUBSTRING($1::text, $2, $3)");
         converted = converted.replace(/(\b[a-zA-Z0-9_\.]+\b)\s+LIKE\s+(\$\d+)/gi, "$1::text LIKE $2");
         return converted;
@@ -114,6 +119,9 @@ export async function initDatabase() {
           };
         }
       };
+
+      console.log('🔄 [PostgreSQL] Initialisation & synchronisation des tables de la base de données...');
+      await syncTables(pool).catch((e: any) => console.warn('⚠️ [PostgreSQL Sync Warning]:', e.message));
       return;
     } catch (pgErr: any) {
       console.error('❌ [PostgreSQL] Connexion PostgreSQL échouée :', pgErr.message);
@@ -142,7 +150,7 @@ export async function initDatabase() {
   }
 }
 
-async function syncTables(conn: mysql.PoolConnection) {
+async function syncTables(conn: any) {
   try {
     await conn.query(`
       CREATE TABLE IF NOT EXISTS ateliers (
