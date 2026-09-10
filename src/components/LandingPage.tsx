@@ -242,8 +242,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               {/* App Store Button */}
               <a
-                href="#download-ios"
-                onClick={(e) => { e.preventDefault(); alert("DigiCouture pour iOS est bientôt disponible sur l'App Store ! En attendant, profitez de la version web mobile sans installation."); }}
+                href={import.meta.env.VITE_MOBILE_APK_URL || "https://expo.dev/accounts/ymohamed/projects/mobile_app/builds/c1e07bd9-f93a-4d23-a3c6-8cb526f8c613"}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  const apkUrl = import.meta.env.VITE_MOBILE_APK_URL || "https://expo.dev/accounts/ymohamed/projects/mobile_app/builds/c1e07bd9-f93a-4d23-a3c6-8cb526f8c613";
+                  window.open(apkUrl, '_blank');
+                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
