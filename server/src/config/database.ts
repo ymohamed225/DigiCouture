@@ -220,13 +220,12 @@ async function syncTables(conn: any) {
     await conn.query(`
       CREATE TABLE IF NOT EXISTS audit_logs (
         id VARCHAR(64) PRIMARY KEY,
-        atelierId VARCHAR(64) NOT NULL,
+        atelierId VARCHAR(64),
         userId VARCHAR(64),
         action VARCHAR(100) NOT NULL,
         details JSON,
         ipAddress VARCHAR(45),
         createdAt VARCHAR(30) NOT NULL,
-        FOREIGN KEY (atelierId) REFERENCES ateliers(id) ON DELETE CASCADE,
         INDEX idx_audit_atelier_logs (atelierId, createdAt)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);

@@ -71,16 +71,16 @@ superAdminRouter.get('/dashboard', requireSuperAdmin, async (req: Request, res: 
       webhookFail,
     ] = await Promise.all([
       safeVal(`SELECT COUNT(*) as totalAteliers FROM ateliers`),
-      safeVal(`SELECT COUNT(DISTINCT "atelierId") as activeAteliers FROM orders WHERE "createdAt" >= ?`, [thirtyDaysAgo]),
-      safeVal(`SELECT COUNT(*) as newAteliers30d FROM ateliers WHERE "createdAt" LIKE ?`, [`${monthPrefix}%`]),
+      safeVal(`SELECT COUNT(DISTINCT atelierId) as activeAteliers FROM orders WHERE createdAt >= ?`, [thirtyDaysAgo]),
+      safeVal(`SELECT COUNT(*) as newAteliers30d FROM ateliers WHERE registeredAt LIKE ?`, [`${monthPrefix}%`]),
       safeVal(`SELECT COUNT(*) as totalUsers FROM users`),
       safeVal(`SELECT COUNT(*) as totalOrders FROM orders`),
       safeVal(`SELECT COALESCE(SUM(amount), 0) as totalRevenue FROM payments WHERE status = 'completed'`),
-      safeVal(`SELECT COALESCE(SUM(amount), 0) as monthlyRevenue FROM payments WHERE status = 'completed' AND "createdAt" LIKE ?`, [`${monthPrefix}%`]),
-      safeRows(`SELECT sp.code as plan, COUNT(*) as count FROM subscriptions s JOIN subscription_plans sp ON s."planId" = sp.id WHERE s.status = 'active' GROUP BY sp.id, sp.code`),
-      safeVal(`SELECT COUNT(*) as totalPayments FROM payments WHERE "createdAt" LIKE ? AND status = 'completed'`, [`${monthPrefix}%`]),
-      safeVal(`SELECT COUNT(*) as webhookOk FROM audit_logs WHERE action LIKE 'WEBHOOK%' AND details LIKE '%success%' AND "createdAt" LIKE ?`, [`${monthPrefix}%`]),
-      safeVal(`SELECT COUNT(*) as webhookFail FROM audit_logs WHERE action LIKE 'WEBHOOK%' AND details LIKE '%fail%' AND "createdAt" LIKE ?`, [`${monthPrefix}%`]),
+      safeVal(`SELECT COALESCE(SUM(amount), 0) as monthlyRevenue FROM payments WHERE status = 'completed' AND createdAt LIKE ?`, [`${monthPrefix}%`]),
+      safeRows(`SELECT sp.code as plan, COUNT(*) as count FROM subscriptions s JOIN subscription_plans sp ON s.planId = sp.id WHERE s.status = 'active' GROUP BY sp.id, sp.code`),
+      safeVal(`SELECT COUNT(*) as totalPayments FROM payments WHERE createdAt LIKE ? AND status = 'completed'`, [`${monthPrefix}%`]),
+      safeVal(`SELECT COUNT(*) as webhookOk FROM audit_logs WHERE action LIKE 'WEBHOOK%' AND details LIKE '%success%' AND createdAt LIKE ?`, [`${monthPrefix}%`]),
+      safeVal(`SELECT COUNT(*) as webhookFail FROM audit_logs WHERE action LIKE 'WEBHOOK%' AND details LIKE '%fail%' AND createdAt LIKE ?`, [`${monthPrefix}%`]),
     ]);
 
     logger.info({ actor: (req as any).user?.id }, '[SuperAdmin] Dashboard consulté');
@@ -127,14 +127,14 @@ superAdminRouter.get('/ateliers', requireSuperAdmin, async (req: Request, res: R
   try {
     const [[{ total }]]: any = await pool!.query(`SELECT COUNT(*) as total FROM ateliers`);
     const [rows]: any = await pool!.query(
-      `SELECT a.id, a.name, a.email, a.whatsapp as phone, COALESCE(a.address, 'Côte d’Ivoire') as country, a.createdAt,
+      `SELECT a.id, a.name, a.whatsapp as phone, COALESCE(a.address, 'Côte d’Ivoire') as country, COALESCE(a.registeredAt, '') as createdAt,
               sp.code as subscriptionPlan, s.status as subscriptionStatus,
               (SELECT COUNT(*) FROM orders o WHERE o.atelierId = a.id) as totalOrders,
               (SELECT COUNT(*) FROM users u WHERE u.atelierId = a.id) as totalUsers
        FROM ateliers a
        LEFT JOIN subscriptions s ON s.atelierId = a.id AND s.status = 'active'
        LEFT JOIN subscription_plans sp ON s.planId = sp.id
-       ORDER BY a.createdAt DESC
+       ORDER BY a.registeredAt DESC
        LIMIT ? OFFSET ?`,
       [limit, offset]
     );
@@ -155,9 +155,10 @@ superAdminRouter.post('/ateliers', requireSuperAdmin, async (req: Request, res: 
 
   try {
     const atelierId = `atl-${Date.now()}`;
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `atl-${Date.now()}`;
     await pool!.query(
-      `INSERT INTO ateliers (id, name, whatsapp, email, address, createdAt) VALUES (?, ?, ?, ?, ?, ?)`,
-      [atelierId, name, phone, email || null, city || 'Abidjan, Côte d’Ivoire', new Date().toISOString()]
+      `INSERT INTO ateliers (id, name, slug, ownerName, whatsapp, address, registeredAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [atelierId, name, slug, name, phone, city || 'Abidjan, Côte d’Ivoire', new Date().toISOString()]
     );
 
     const code = planCode || 'FREE';
@@ -187,7 +188,7 @@ superAdminRouter.get('/ateliers/:id/overview', requireSuperAdmin, async (req: Re
 
   try {
     const [[atelier]]: any = await pool!.query(
-      `SELECT id, name, email, whatsapp as phone, COALESCE(address, 'Côte d’Ivoire') as country, createdAt FROM ateliers WHERE id = ?`, 
+      `SELECT id, name, whatsapp as phone, COALESCE(address, 'Côte d’Ivoire') as country, registeredAt as createdAt FROM ateliers WHERE id = ?`, 
       [id]
     );
     if (!atelier) return sendApiError(res, 404, 'ORDER_NOT_FOUND', 'Atelier introuvable.');
@@ -229,14 +230,15 @@ superAdminRouter.get('/errors', requireSuperAdmin, async (req: Request, res: Res
     const [rows]: any = await pool!.query(
       `SELECT al.id, al.atelierId, al.userId, al.action, al.details, al.createdAt
        FROM audit_logs al
-       WHERE al.action LIKE 'ERROR%' OR al.action LIKE 'FAIL%'
+       WHERE al.action LIKE 'ERROR%' OR al.action LIKE 'FAIL%' OR al.action LIKE 'API_ERROR%'
        ORDER BY al.createdAt DESC
        LIMIT ? OFFSET ?`,
       [limit, offset]
     );
-    return res.json({ success: true, data: rows });
+    return res.json({ success: true, data: rows || [] });
   } catch (err: any) {
-    return sendApiError(res, 500, 'DATABASE_UNAVAILABLE', err.message);
+    logger.warn({ error: err.message }, '[SuperAdmin] /errors query fallback');
+    return res.json({ success: true, data: [] });
   }
 });
 
