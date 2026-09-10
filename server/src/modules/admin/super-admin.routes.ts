@@ -36,67 +36,51 @@ superAdminRouter.get('/dashboard', requireSuperAdmin, async (req: Request, res: 
     const monthPrefix = now.toISOString().slice(0, 7);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 3600 * 1000).toISOString().split('T')[0];
 
+    const safeVal = async (sql: string, params: any[] = []): Promise<number> => {
+      try {
+        const [rows]: any = await pool!.query(sql, params);
+        if (!rows || rows.length === 0) return 0;
+        const first = rows[0];
+        const key = Object.keys(first)[0];
+        return Number(first[key]) || 0;
+      } catch (e) {
+        return 0;
+      }
+    };
+
+    const safeRows = async (sql: string, params: any[] = []): Promise<any[]> => {
+      try {
+        const [rows]: any = await pool!.query(sql, params);
+        return Array.isArray(rows) ? rows : [];
+      } catch (e) {
+        return [];
+      }
+    };
+
     const [
-      [{ totalAteliers }],
-      [{ activeAteliers }],
-      [{ newAteliers30d }],
-      [{ totalUsers }],
-      [{ totalOrders }],
-      [{ totalRevenue }],
-      [{ monthlyRevenue }],
+      totalAteliers,
+      activeAteliers,
+      newAteliers30d,
+      totalUsers,
+      totalOrders,
+      totalRevenue,
+      monthlyRevenue,
       subscriptionBreakdown,
-      [{ totalPayments }],
-      [{ webhookOk }],
-      [{ webhookFail }],
+      totalPayments,
+      webhookOk,
+      webhookFail,
     ] = await Promise.all([
-      // 1. Total ateliers
-      pool!.query(`SELECT COUNT(*) as totalAteliers FROM ateliers`).then(([r]: any) => r),
-      // 2. Ateliers ayant au moins 1 commande dans les 30 derniers jours
-      pool!.query(
-        `SELECT COUNT(DISTINCT atelierId) as activeAteliers FROM orders WHERE createdAt >= ?`,
-        [thirtyDaysAgo]
-      ).then(([r]: any) => r),
-      // 3. Nouveaux ateliers ce mois
-      pool!.query(
-        `SELECT COUNT(*) as newAteliers30d FROM ateliers WHERE createdAt LIKE ?`,
-        [`${monthPrefix}%`]
-      ).then(([r]: any) => r),
-      // 4. Utilisateurs total
-      pool!.query(`SELECT COUNT(*) as totalUsers FROM users`).then(([r]: any) => r),
-      // 5. Commandes totales
-      pool!.query(`SELECT COUNT(*) as totalOrders FROM orders`).then(([r]: any) => r),
-      // 6. Revenus globaux (paiements completed)
-      pool!.query(
-        `SELECT COALESCE(SUM(amount), 0) as totalRevenue FROM payments WHERE status = 'completed'`
-      ).then(([r]: any) => r),
-      // 7. MRR du mois (paiements completed ce mois)
-      pool!.query(
-        `SELECT COALESCE(SUM(amount), 0) as monthlyRevenue FROM payments WHERE status = 'completed' AND createdAt LIKE ?`,
-        [`${monthPrefix}%`]
-      ).then(([r]: any) => r),
-      // 8. Répartition abonnements
-      pool!.query(
-        `SELECT sp.code as plan, COUNT(*) as count 
-         FROM subscriptions s 
-         JOIN subscription_plans sp ON s.planId = sp.id 
-         WHERE s.status = 'active' 
-         GROUP BY sp.id, sp.code`
-      ).then(([r]: any) => r),
-      // 9. Paiements this month
-      pool!.query(
-        `SELECT COUNT(*) as totalPayments FROM payments WHERE createdAt LIKE ? AND status = 'completed'`,
-        [`${monthPrefix}%`]
-      ).then(([r]: any) => r),
-      // 10. Webhooks OK ce mois (audit_logs)
-      pool!.query(
-        `SELECT COUNT(*) as webhookOk FROM audit_logs WHERE action LIKE 'WEBHOOK%' AND details LIKE '%success%' AND createdAt LIKE ?`,
-        [`${monthPrefix}%`]
-      ).then(([r]: any) => r),
-      // 11. Webhooks en erreur
-      pool!.query(
-        `SELECT COUNT(*) as webhookFail FROM audit_logs WHERE action LIKE 'WEBHOOK%' AND details LIKE '%fail%' AND createdAt LIKE ?`,
-        [`${monthPrefix}%`]
-      ).then(([r]: any) => r),
+      safeVal(`SELECT COUNT(*) as totalAteliers FROM ateliers`),
+      safeVal(`SELECT COUNT(DISTINCT "atelierId") as activeAteliers FROM orders WHERE "createdAt" >= ?`, [thirtyDaysAgo]),
+      safeVal(`SELECT COUNT(*) as newAteliers30d FROM ateliers WHERE "createdAt" LIKE ?`, [`${monthPrefix}%`]),
+      safeVal(`SELECT COUNT(*) as totalUsers FROM users`),
+      safeVal(`SELECT COUNT(*) as totalOrders FROM orders`),
+      safeVal(`SELECT COALESCE(SUM(amount), 0) as totalRevenue FROM payments WHERE status = 'completed'`),
+      safeVal(`SELECT COALESCE(SUM(amount), 0) as monthlyRevenue FROM payments WHERE status = 'completed' AND "createdAt" LIKE ?`, [`${monthPrefix}%`]),
+      safeRows(`SELECT sp.code as plan, COUNT(*) as count FROM subscriptions s JOIN subscription_plans sp ON s."planId" = sp.id WHERE s.status = 'active' GROUP BY sp.id, sp.code`),
+      safeVal(`SELECT COUNT(*) as totalPayments FROM payments WHERE "createdAt" LIKE ? AND status = 'completed'`, [`${monthPrefix}%`]),
+      safeVal(`SELECT COUNT(*) as webhookOk FROM audit_logs WHERE action LIKE 'WEBHOOK%' AND details LIKE '%success%' AND "createdAt" LIKE ?`, [`${monthPrefix}%`]),
+      safeVal(`SELECT COUNT(*) as webhookFail FROM audit_logs WHERE action LIKE 'WEBHOOK%' AND details LIKE '%fail%' AND "createdAt" LIKE ?`, [`${monthPrefix}%`]),
     ]);
 
     logger.info({ actor: (req as any).user?.id }, '[SuperAdmin] Dashboard consulté');
@@ -106,8 +90,8 @@ superAdminRouter.get('/dashboard', requireSuperAdmin, async (req: Request, res: 
       generatedAt: new Date().toISOString(),
       platform: {
         totalAteliers,
-        activeAteliers,    // Ateliers avec activité ces 30 derniers jours
-        newAteliers30d,    // Inscrits ce mois
+        activeAteliers,
+        newAteliers30d,
         totalUsers,
       },
       finance: {

@@ -46,31 +46,66 @@ export async function initDatabase() {
       isMySqlConnected = true;
       console.log('✅ [Prisma ORM & PostgreSQL] Connecté avec succès à la Base de Données PostgreSQL Render !');
 
+      const convertSqlForPg = (sql: string): string => {
+        let paramIdx = 1;
+        let converted = sql.replace(/\?/g, () => `$${paramIdx++}`);
+        converted = converted.replace(/REPLACE\(([^,]+),\s*" ", ""\)/gi, "REPLACE($1, ' ', '')");
+        converted = converted.replace(/ON DUPLICATE KEY UPDATE/gi, "ON CONFLICT DO NOTHING");
+        converted = converted.replace(/ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/gi, ";");
+        converted = converted.replace(/TINYINT\(1\)/gi, "BOOLEAN");
+        converted = converted.replace(/\bSUBSTRING\(([^,]+),\s*(\d+),\s*(\d+)\)/gi, "SUBSTRING($1::text, $2, $3)");
+        converted = converted.replace(/(\b[a-zA-Z0-9_\.]+\b)\s+LIKE\s+(\$\d+)/gi, "$1::text LIKE $2");
+        return converted;
+      };
+
+      const wrapPgRows = (rows: any[]): any[] => {
+        if (!Array.isArray(rows)) return rows;
+        return rows.map((row: any) => {
+          if (!row || typeof row !== 'object' || Array.isArray(row)) return row;
+          return new Proxy(row, {
+            get(target, prop: string | symbol) {
+              if (typeof prop === 'string') {
+                if (prop in target) return target[prop];
+                const lower = prop.toLowerCase();
+                for (const k of Object.keys(target)) {
+                  if (k.toLowerCase() === lower) return target[k];
+                }
+              }
+              return target[prop as keyof typeof target];
+            }
+          });
+        });
+      };
+
+      const convertParams = (params: any[] = []): any[] => {
+        return params.map(p => {
+          if (typeof p === 'string' && /^\d+$/.test(p) && p.length <= 10) {
+            return Number(p);
+          }
+          return p;
+        });
+      };
+
       pool = {
         query: async (sql: string, params: any[] = []) => {
-          let paramIdx = 1;
-          let convertedSql = sql.replace(/\?/g, () => `$${paramIdx++}`);
-          convertedSql = convertedSql.replace(/REPLACE\(([^,]+),\s*" ", ""\)/gi, "REPLACE($1, ' ', '')");
-          convertedSql = convertedSql.replace(/ON DUPLICATE KEY UPDATE/gi, "ON CONFLICT DO NOTHING");
-          convertedSql = convertedSql.replace(/ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/gi, ";");
-          convertedSql = convertedSql.replace(/TINYINT\(1\)/gi, "BOOLEAN");
-
-          const result = await pgPool.query(convertedSql, params);
-          return [result.rows, result.fields];
+          try {
+            const convertedSql = convertSqlForPg(sql);
+            const safeParams = convertParams(params);
+            const result = await pgPool.query(convertedSql, safeParams);
+            return [wrapPgRows(result.rows), result.fields];
+          } catch (err: any) {
+            console.error(`⚠️ [PostgreSQL Query Error] SQL: ${sql} | Error: ${err.message}`);
+            throw err;
+          }
         },
         getConnection: async () => {
           const client = await pgPool.connect();
           return {
             query: async (sql: string, params: any[] = []) => {
-              let paramIdx = 1;
-              let convertedSql = sql.replace(/\?/g, () => `$${paramIdx++}`);
-              convertedSql = convertedSql.replace(/REPLACE\(([^,]+),\s*" ", ""\)/gi, "REPLACE($1, ' ', '')");
-              convertedSql = convertedSql.replace(/ON DUPLICATE KEY UPDATE/gi, "ON CONFLICT DO NOTHING");
-              convertedSql = convertedSql.replace(/ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;/gi, ";");
-              convertedSql = convertedSql.replace(/TINYINT\(1\)/gi, "BOOLEAN");
-
-              const result = await client.query(convertedSql, params);
-              return [result.rows, result.fields];
+              const convertedSql = convertSqlForPg(sql);
+              const safeParams = convertParams(params);
+              const result = await client.query(convertedSql, safeParams);
+              return [wrapPgRows(result.rows), result.fields];
             },
             release: () => client.release(),
             beginTransaction: async () => client.query('BEGIN'),
