@@ -22,6 +22,7 @@ const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ de
 const IntegrationsPage = lazy(() => import('./pages/IntegrationsPage').then(m => ({ default: m.IntegrationsPage })));
 const SecuritePage = lazy(() => import('./pages/SecuritePage').then(m => ({ default: m.SecuritePage })));
 const ParametresPage = lazy(() => import('./pages/ParametresPage').then(m => ({ default: m.ParametresPage })));
+const ProfilPage = lazy(() => import('./pages/ProfilPage').then(m => ({ default: m.ProfilPage })));
 
 export function AdminApp() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -107,8 +108,8 @@ export function AdminApp() {
         return <SecuritePage />;
       case 'parametres':
         return <ParametresPage />;
-      // Pages système — squelette en attente d'implémentation
       case 'profil':
+        return <ProfilPage />;
       default:
         return (
           <div style={{ padding: 32 }}>
