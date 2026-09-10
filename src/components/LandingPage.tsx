@@ -245,7 +245,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 href={import.meta.env.VITE_MOBILE_APK_URL || "https://expo.dev/accounts/ymohamed/projects/mobile_app/builds/c1e07bd9-f93a-4d23-a3c6-8cb526f8c613"}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => {
+                onClick={() => {
                   const apkUrl = import.meta.env.VITE_MOBILE_APK_URL || "https://expo.dev/accounts/ymohamed/projects/mobile_app/builds/c1e07bd9-f93a-4d23-a3c6-8cb526f8c613";
                   window.open(apkUrl, '_blank');
                 }}
@@ -282,7 +282,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 href={import.meta.env.VITE_MOBILE_APK_URL || "https://expo.dev/accounts/ymohamed/projects/mobile_app/builds/c1e07bd9-f93a-4d23-a3c6-8cb526f8c613"}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => {
+                onClick={() => {
                   const apkUrl = import.meta.env.VITE_MOBILE_APK_URL || "https://expo.dev/accounts/ymohamed/projects/mobile_app/builds/c1e07bd9-f93a-4d23-a3c6-8cb526f8c613";
                   window.open(apkUrl, '_blank');
                 }}
