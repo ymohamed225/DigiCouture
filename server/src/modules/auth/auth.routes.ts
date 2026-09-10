@@ -25,7 +25,7 @@ authRouter.post('/send-otp', async (req: Request, res: Response) => {
 
   try {
     const [rows]: any = await pool!.query(
-      'SELECT * FROM ateliers WHERE REPLACE(whatsapp, " ", "") LIKE ? OR REPLACE(whatsapp, " ", "") LIKE ?',
+      "SELECT * FROM ateliers WHERE REPLACE(whatsapp, ' ', '') LIKE ? OR REPLACE(whatsapp, ' ', '') LIKE ?",
       [`%${last8}`, `%${cleanPhone}`]
     );
     const atelierFound = rows.length > 0 ? rows[0] : null;
@@ -73,7 +73,7 @@ authRouter.post('/verify-otp', async (req: Request, res: Response) => {
     }
 
     const [rows]: any = await pool!.query(
-      'SELECT * FROM ateliers WHERE REPLACE(whatsapp, " ", "") LIKE ? OR REPLACE(whatsapp, " ", "") LIKE ?',
+      "SELECT * FROM ateliers WHERE REPLACE(whatsapp, ' ', '') LIKE ? OR REPLACE(whatsapp, ' ', '') LIKE ?",
       [`%${last8}`, `%${cleanPhone}`]
     );
 
@@ -131,7 +131,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
   try {
     const [rows]: any = await pool!.query(
       `SELECT * FROM ateliers 
-       WHERE (whatsapp LIKE ? OR REPLACE(whatsapp, " ", "") LIKE ?) 
+       WHERE (whatsapp LIKE ? OR REPLACE(whatsapp, ' ', '') LIKE ?) 
           OR ownerName LIKE ? 
        LIMIT 1`,
       [`%${cleanPhone}%`, `%${last8}%`, `%${email || ''}%`]

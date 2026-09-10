@@ -22,6 +22,8 @@ import {
   demoMeasurements
 } from './demoMockData';
 
+import { getApiBaseUrl } from './services/api/client';
+
 import { getStepWhatsappMessage } from './utils/whatsappMessages';
 import { Sidebar } from './components/Sidebar';
 import { MobileBottomNav } from './components/MobileBottomNav';
@@ -92,7 +94,8 @@ export function App() {
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        const res = await fetch('/api/auth/refresh', {
+        const baseUrl = getApiBaseUrl();
+        const res = await fetch(`${baseUrl}/auth/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
